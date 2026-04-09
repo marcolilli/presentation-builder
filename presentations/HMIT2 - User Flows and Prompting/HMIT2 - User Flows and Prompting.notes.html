@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HMIT2 - User Flows and Prompting Notes</title>
+    <style>
+
+    :root {
+      --slide-padding-x: 4.5rem;
+      --slide-padding-y: 3rem;
+      --headline-font: "Arial Narrow", Arial, sans-serif;
+      --body-font: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --text-color: #111111;
+      --muted-color: #5b5b5b;
+      --border-color: rgba(17, 17, 17, 0.12);
+      --panel-color: rgba(255, 255, 255, 0.92);
+      --shadow-color: rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: #ffffff;
+      color: var(--text-color);
+      font-family: var(--body-font);
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      margin: 0 0 1rem;
+      font-family: var(--headline-font);
+      font-weight: 100;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+    }
+
+    h1 {
+      font-size: clamp(3.2rem, 7vw, 6.6rem);
+    }
+
+    h2 {
+      font-size: clamp(2.6rem, 5vw, 4.8rem);
+    }
+
+    h3 {
+      font-size: clamp(2rem, 4vw, 3.4rem);
+    }
+
+    p,
+    li,
+    blockquote,
+    code,
+    center {
+      font-size: clamp(2.05rem, 2.7vw, 2.55rem);
+      line-height: 1.45;
+    }
+
+    center {
+      display: block;
+    }
+
+    p,
+    ul,
+    ol,
+    pre,
+    blockquote {
+      margin: 0 0 1rem;
+    }
+
+    ul,
+    ol {
+      padding-left: 1.35em;
+    }
+
+    a {
+      color: #1557ff;
+      text-decoration-thickness: 0.08em;
+      text-underline-offset: 0.14em;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    }
+
+    :not(pre) > code {
+      padding: 0.08em 0.28em;
+      background: #f3f3f3;
+    }
+
+    pre {
+      overflow-x: auto;
+      overflow-y: visible;
+      padding: 1rem 1.2rem;
+      border: 0.0625rem solid var(--border-color);
+      background: #f3f3f3;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    img,
+    video {
+      max-width: 100%;
+    }
+
+    .slide-media {
+      display: block;
+      width: auto;
+      max-width: min(100%, 78rem);
+      max-height: 58vh;
+      object-fit: contain;
+      margin: 1rem 0;
+    }
+
+    .slide-deck {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      padding: var(--slide-padding-y) var(--slide-padding-x);
+      background: #ffffff;
+      overflow-x: hidden;
+      overflow-y: auto;
+      isolation: isolate;
+    }
+
+    .slide.is-active {
+      display: block;
+    }
+
+    .slide-background {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+    }
+
+    .slide-background-image {
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    .slide-background-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .slide-content {
+      position: relative;
+      width: 100%;
+      max-width: 90rem;
+      margin: 0 auto;
+      text-align: left;
+      padding-bottom: 3rem;
+    }
+
+    .slide.template-cover {
+      display: none;
+      align-items: flex-end;
+      background:
+        radial-gradient(circle at top left, rgba(21, 87, 255, 0.14), transparent 28%),
+        linear-gradient(180deg, #faf7f1 0%, #ffffff 48%, #f2f5ff 100%);
+    }
+
+    .slide.template-cover.is-active {
+      display: flex;
+    }
+
+    .slide.template-cover .slide-content {
+      display: flex;
+      align-items: flex-end;
+      min-height: 100%;
+      max-width: 100%;
+      padding-bottom: 0;
+    }
+
+    .cover-slide {
+      width: min(100%, 64rem);
+      padding: 0 0 4vh;
+    }
+
+    .cover-slide-kicker {
+      margin-bottom: 1.2rem;
+      font-size: 0.95rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted-color);
+    }
+
+    .cover-slide-title {
+      margin-bottom: 1.5rem;
+    }
+
+    .cover-slide-date {
+      font-size: clamp(1.1rem, 2vw, 1.5rem);
+      color: var(--muted-color);
+    }
+
+    .slide.template-marked-text,
+    .slide.template-marked-text a,
+    .slide.template-marked-text h1,
+    .slide.template-marked-text h2,
+    .slide.template-marked-text h3,
+    .slide.template-marked-text h4,
+    .slide.template-marked-text h5,
+    .slide.template-marked-text h6,
+    .slide.template-marked-text p,
+    .slide.template-marked-text li,
+    .slide.template-marked-text blockquote,
+    .slide.template-marked-text center {
+      color: #ffffff;
+    }
+
+    .marked {
+      background-color: #000000;
+      color: #ffffff;
+      padding: 0.1em 0.2em;
+      line-height: 1.5em;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+
+    ul,
+    ol {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    li {
+      position: relative;
+      padding-left: 1.2em;
+    }
+
+    li::before {
+      content: "-";
+      position: absolute;
+      left: 0;
+      color: currentColor;
+    }
+
+    .token.comment {
+      color: #6b7280;
+    }
+
+    .token.keyword {
+      color: #9a3412;
+      font-weight: 600;
+    }
+
+    .token.string {
+      color: #1d4ed8;
+    }
+
+    .token.number,
+    .token.boolean {
+      color: #047857;
+    }
+
+    .slide-number {
+      position: fixed;
+      right: 1rem;
+      bottom: 0.8rem;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(17, 17, 17, 0.56);
+      z-index: 20;
+    }
+
+    .fullscreen-toggle {
+      appearance: none;
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      border: 0.0625rem solid var(--border-color);
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text-color);
+      padding: 0.55rem 0.8rem;
+      font: inherit;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      z-index: 20;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 120ms ease;
+    }
+
+    .fullscreen-toggle.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .fullscreen-toggle:hover {
+      background: #ffffff;
+    }
+
+    .presentation-title {
+      position: fixed;
+      left: 1rem;
+      bottom: 0.8rem;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(17, 17, 17, 0.56);
+      z-index: 20;
+    }
+
+    @media (max-width: 56.25rem) {
+      :root {
+        --slide-padding-x: 1.4rem;
+        --slide-padding-y: 1.6rem;
+      }
+
+      .slide-media {
+        max-height: 44vh;
+      }
+    }
+  
+
+      body {
+        overflow: auto;
+        padding: 1rem;
+        background: #f5f3ef;
+      }
+
+      .notes-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(17.5rem, 34%);
+        gap: 1rem;
+        min-height: calc(100vh - 2rem);
+      }
+
+      .notes-main,
+      .notes-sidebar,
+      .notes-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .notes-panel {
+        padding: 1rem;
+        border: 0.0625rem solid var(--border-color);
+        background: var(--panel-color);
+        box-shadow: 0 0.75rem 1.875rem var(--shadow-color);
+      }
+
+      .notes-panel-next {
+        max-width: 34rem;
+      }
+
+      .notes-label {
+        margin: 0 0 0.4rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted-color);
+      }
+
+      .notes-meta {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        font-size: 0.95rem;
+      }
+
+      .notes-controls {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .notes-button {
+        appearance: none;
+        border: 0.0625rem solid var(--border-color);
+        background: #ffffff;
+        color: var(--text-color);
+        padding: 0.6rem 0.9rem;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .notes-button:hover {
+        background: #f5f5f5;
+      }
+
+      .notes-preview {
+        aspect-ratio: 16 / 9;
+        overflow: hidden;
+        position: relative;
+        background: #ffffff;
+        border: 0.0625rem solid var(--border-color);
+      }
+
+      .notes-preview-next {
+        max-width: 32rem;
+      }
+
+      .notes-preview iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: #ffffff;
+      }
+
+      .notes-empty {
+        color: var(--muted-color);
+      }
+
+      @media (max-width: 62.5rem) {
+        .notes-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="notes-layout">
+      <section class="notes-main">
+        <article class="notes-panel">
+          <p class="notes-label">Current Slide</p>
+          <div class="notes-meta" id="current-meta"></div>
+          <div class="notes-controls">
+            <button class="notes-button" id="prev-button" type="button">Previous</button>
+            <button class="notes-button" id="next-button" type="button">Next</button>
+          </div>
+          <div class="notes-preview" id="current-slide"></div>
+        </article>
+        <article class="notes-panel notes-panel-next">
+          <p class="notes-label">Next Slide</p>
+          <div class="notes-preview notes-preview-next" id="next-slide"></div>
+        </article>
+      </section>
+      <aside class="notes-sidebar">
+        <article class="notes-panel">
+          <p class="notes-label">Notes</p>
+          <div id="notes"></div>
+        </article>
+      </aside>
+    </div>
+    <script>
+      const CHANNEL_NAME = "presentation-users-ml-library-mobile-documents-icloud-md-obsidian-documents-main-vault-uni-hmit2-user-flows-and-prompting-md";
+      const SLIDES = [{"index":0,"title":"HMIT2 - User Flows and Prompting","template":"cover","html":"<div class=\"cover-slide\">\n        <p class=\"cover-slide-kicker\">Presentation</p>\n        <h1 class=\"cover-slide-title\">HMIT2 - User Flows and Prompting</h1>\n        <p class=\"cover-slide-date\">April 2026</p>\n      </div>","plainText":"HMIT2 - User Flows and Prompting\nApril 2026","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":1,"title":"Case Study: Enhancing Splitwise's Web App User Flows and Interface","template":"","html":"<h1><a href=\"https://www.alpt.design/projects/splitwise\" target=\"_blank\" rel=\"noreferrer\">Case Study: Enhancing Splitwise's Web App User Flows and Interface</a></h1>\n<h2>Re-designing a shared expense management applications</h2>","plainText":"Case Study: Enhancing Splitwise's Web App User Flows and Interface\nRe-designing a shared expense management applications","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":2,"title":"Tasks","template":"marked-text","html":"<h1><span class=\"marked\">Tasks</span></h1>\n<p><strong><span class=\"marked\">Task 1: Create a user flow</span></strong><span class=\"marked\"> Map the steps a user takes from entering the app to completing their goal.</span></p>\n<p><strong><span class=\"marked\">Task 2: Define features and interactions</span></strong><span class=\"marked\"> Highlight the key interactions needed for the MVP.</span></p>","plainText":"Tasks\nTask 1: Create a user flow\nMap the steps a user takes from entering the app to completing their goal.\n\nTask 2: Define features and interactions\nHighlight the key interactions needed for the MVP.","notesHtml":"","notesText":"","background":{"type":"image","value":"https://d2w9rnfcy7mm78.cloudfront.net/3967260/original_3de38d703ee5554c55b739b67b70f647.jpg?1553902759?bc=1"}},{"index":3,"title":"What Is an LLM?","template":"","html":"<h1>What Is an LLM?</h1>\n<ul><li>An LLM (large language model) predicts the next token in a sequence</li><li>A token can be a short word or part of a word</li><li>It generates text</li></ul>\n<p><strong>Example:</strong> If the input is \"A login screen usually has email, password, and a...\" a likely next prediction could be \"button\".</p>","plainText":"What Is an LLM?\n- An LLM (large language model) predicts the next token in a sequence\n- A token can be a short word or part of a word \n- It generates text\n\nExample:\nIf the input is \"A login screen usually has email, password, and a...\" a likely next prediction could be \"button\".","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":4,"title":"What Is an LLM?","template":"","html":"<h1>What Is an LLM?</h1>\n<p><img class=\"slide-media\" src=\"assets/Pasted image 20260408140925.png\" alt=\"\" /></p>","plainText":"What Is an LLM?\n\nPasted image 20260408140925.png","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":5,"title":"How Does the Model Know Things?","template":"marked-text","html":"<h1><span class=\"marked\">How Does the Model Know Things?</span></h1>\n<ul><li><span class=\"marked\">The model was trained on very large amounts of text, code, and other data</span></li><li><span class=\"marked\">During training it learned patterns, relationships, and common structures</span></li><li><span class=\"marked\">It learns statistical patterns that let it generate plausible answers</span></li></ul>\n<center><span class=\"marked\">Large Language Model ≠ Large Knowledge Model</span></center>","plainText":"How Does the Model Know Things?\n- The model was trained on very large amounts of text, code, and other data\n- During training it learned patterns, relationships, and common structures\n- It learns statistical patterns that let it generate plausible answers\n\n<center>Large Language Model ≠ Large Knowledge Model</center>","notesHtml":"","notesText":"","background":{"type":"image","value":"https://d2w9rnfcy7mm78.cloudfront.net/31507203/original_ef19479110cb6afeca8509580aa4e58a.jpg?1729189493?bc=0"}},{"index":6,"title":"How AI Chat Tools Work","template":"","html":"<h1>How AI Chat Tools Work</h1>\n<ul><li>Chat is still next-token prediction in a special format</li><li>The system adds <code>user:</code> and <code>assistant:</code> to the messages before the model sees them</li></ul>\n<p><strong>Example:</strong> When asking an AI chat to “Create a recipe for Pizza Margherita”, the system modifies the message so it looks like</p>\n<pre><code>user: Create a recipe for Pizza Margherita\nassistant:</code></pre>\n<p>The model is not \"talking\" like a person. It is predicting the most likely assistant response in that format.</p>\n<p>Without the formatting an LLM would simply try to continue the text. <code>Create a recipe for Pizza Margherita that is simple, quick, and suitable for beginners.</code></p>","plainText":"How AI Chat Tools Work\n- Chat is still next-token prediction in a special format\n- The system adds user: and assistant: to the messages before the model sees them\n\nExample:\nWhen asking an AI chat to “Create a recipe for Pizza Margherita”, the system modifies the message so it looks like \n``\nuser: Create a recipe for Pizza Margherita\nassistant:\n`\n\nThe model is not \"talking\" like a person. It is predicting the most likely assistant response in that format.\n\nWithout the formatting an LLM would simply try to continue the text.\nCreate a recipe for Pizza Margherita that is simple, quick, and suitable for beginners.`","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":7,"title":"Important Insight","template":"","html":"<h1>Important Insight</h1>\n<ul><li>The chat system re-sends the conversation history each time</li><li>Longer prompts and longer chats cost more and give the model more to process</li><li>This is why old context still matters and why messy chats get worse over time</li><li>Contradictory instructions weaken the result</li><li>Starting a fresh chat is often better than repairing a bad one forever</li></ul>","plainText":"Important Insight\n- The chat system re-sends the conversation history each time\n- Longer prompts and longer chats cost more and give the model more to process\n- This is why old context still matters and why messy chats get worse over time\n- Contradictory instructions weaken the result\n- Starting a fresh chat is often better than repairing a bad one forever","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":8,"title":"System Prompts","template":"","html":"<h1>System Prompts</h1>\n<ul><li>Every AI tool also has hidden instructions</li><li>These system prompts tell the model how to behave</li><li>They influence tone, structure, and preferred output</li><li>Your prompt works together with those hidden rules, not in isolation</li></ul>\n<p><strong>Example:</strong> A complete message reaching the model could look like this:</p>\n<pre><code>system: You are a helpful assistant. Keep answers short and structured. Do not help with harmful, illegal, abusive, or dangerous requests.\nuser: Create a recipe for Pizza Margherita\nassistant:</code></pre>\n<p><a href=\"https://github.com/asgeirtj/system_prompts_leaks/blob/main/OpenAI/4o-2025-09-03-new-personality.md\" target=\"_blank\" rel=\"noreferrer\">Leaked OpenAI 4o System Prompt</a></p>","plainText":"System Prompts\n- Every AI tool also has hidden instructions\n- These system prompts tell the model how to behave\n- They influence tone, structure, and preferred output\n- Your prompt works together with those hidden rules, not in isolation\n\nExample:\nA complete message reaching the model could look like this:\n\n``\nsystem: You are a helpful assistant. Keep answers short and structured. Do not help with harmful, illegal, abusive, or dangerous requests.\nuser: Create a recipe for Pizza Margherita\nassistant:\n``\n\nLeaked OpenAI 4o System Prompt","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":9,"title":"AI Chat Tools Today","template":"","html":"<h1>AI Chat Tools Today</h1>\n<p>Leading AI chat tools like ChatGPT, Gemini, or Claude are more than autocomplete systems. They are built as a combination of tools. The chat is the interface people interact with, while the system behind it may decide when to search, reason, generate code, inspect files, or work with images.</p>","plainText":"AI Chat Tools Today\nLeading AI chat tools like ChatGPT, Gemini, or Claude are more than autocomplete systems. They are built as a combination of tools.\nThe chat is the interface people interact with, while the system behind it may decide when to search, reason, generate code, inspect files, or work with images.","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":10,"title":"AI Chats Tools Today","template":"","html":"<h1>AI Chats Tools Today</h1>\n<h2>Image Generation</h2>\n<ul><li>In AI chat tools, image recognition or image editing is handled by a different model, not by the language model</li><li>The LLM interprets the user's instruction and coordinates the task</li><li>A vision or image model (CLIP, SigLIP) analyzes or edits the image</li><li>The result is then returned to the chat interface with a language explanation if needed</li></ul>\n<pre><code class=\"language-mermaid\">flowchart LR\n    A[\"User: Remove the person in the background\"] --&gt; B[\"Chat interface\"]\n    B --&gt; C[\"LLM interprets the request\"]\n    C --&gt; D[\"Image model detects objects and edits image\"]\n    D --&gt; E[\"Edited image returned\"]\n    E --&gt; F[\"LLM explains result or asks for refinement\"]</code></pre>","plainText":"AI Chats Tools Today\nImage Generation\n- In AI chat tools, image recognition or image editing is handled by a different model, not by the language model\n- The LLM interprets the user's instruction and coordinates the task\n- A vision or image model (CLIP, SigLIP) analyzes or edits the image\n- The result is then returned to the chat interface with a language explanation if needed\n\n``mermaid\nflowchart LR\n    A[\"User: Remove the person in the background\"] --> B[\"Chat interface\"]\n    B --> C[\"LLM interprets the request\"]\n    C --> D[\"Image model detects objects and edits image\"]\n    D --> E[\"Edited image returned\"]\n    E --> F[\"LLM explains result or asks for refinement\"]\n``","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":11,"title":"AI Chat Tools Today","template":"","html":"<h1>AI Chat Tools Today</h1>\n<h2>Skills/Tools</h2>\n<ul><li>LLMs can work with other applications through tools</li><li>These tools may be called MCP, ACP, function calling, actions, or integrations</li><li>The LLM does not directly operate the app itself, instead it generates an instruction and the tool system executes it</li></ul>","plainText":"AI Chat Tools Today\nSkills/Tools\n- LLMs can work with other applications through tools\n- These tools may be called MCP, ACP, function calling, actions, or integrations\n- The LLM does not directly operate the app itself, instead it generates an instruction and the tool system executes it","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":12,"title":"AI Chat Tools Today","template":"","html":"<h1>AI Chat Tools Today</h1>\n<h2>Skills/Tools</h2>\n<h3>Example: Working with Figma MCP</h3>\n<ul><li>The MCP acts as a translator between the LLM and Figma's API</li><li>The LLM does not draw directly, it generates tool instructions</li><li>The MCP server executes those instructions as Figma node changes</li><li>The loop is: read canvas state -&gt; reason over structured data -&gt; write updates -&gt; check result</li></ul>\n<ol><li>Prompt: <code>Draw a blue rectangle</code></li><li>LLM searches for siutable Figma tools</li><li>LLM “responds” with a tool call:</li></ol>\n<pre><code class=\"language-json\">{\n  \"tool\": \"create_rect\",\n  \"arguments\": {\n    \"width\": <span class=\"token number\">200</span>,\n    \"height\": <span class=\"token number\">100</span>,\n    \"x\": <span class=\"token number\">0</span>,\n    \"y\": <span class=\"token number\">0</span>,\n    \"fills\": [{\"type\": \"SOLID\", \"color\": {\"r\": <span class=\"token number\">0</span>, \"g\": <span class=\"token number\">0</span>, \"b\": <span class=\"token number\">1</span>}}]\n  }\n}</code></pre>\n<ol><li>System around the LLM catches the “response” and hands it over to the Figma MCP server</li><li>Figma executes the task</li></ol>","plainText":"AI Chat Tools Today\nSkills/Tools\nExample: Working with Figma MCP\n- The MCP acts as a translator between the LLM and Figma's API\n- The LLM does not draw directly, it generates tool instructions\n- The MCP server executes those instructions as Figma node changes\n- The loop is: read canvas state -> reason over structured data -> write updates -> check result\n\n1. Prompt: Draw a blue rectangle\n2. LLM searches for siutable Figma tools\n3. LLM “responds” with a tool call:\n``json\n{\n  \"tool\": \"create_rect\",\n  \"arguments\": {\n    \"width\": 200,\n    \"height\": 100,\n    \"x\": 0,\n    \"y\": 0,\n    \"fills\": [{\"type\": \"SOLID\", \"color\": {\"r\": 0, \"g\": 0, \"b\": 1}}]\n  }\n}\n``\n4. System around the LLM catches the “response” and hands it over to the Figma MCP server\n5. Figma executes the task","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":13,"title":"Prompting","template":"","html":"<h1>Prompting</h1>\n<ul><li>You are not programming the model, you are directing it</li><li>Better direction leads to better results</li><li>Your job is to provide context, constraints, and judgment</li></ul>","plainText":"Prompting\n- You are not programming the model, you are directing it\n- Better direction leads to better results\n- Your job is to provide context, constraints, and judgment","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":14,"title":"Prompting","template":"","html":"<h1>Prompting</h1>\n<h2>For UX Prototypes</h2>\n<ul><li>Describe the goal</li><li>Describe the user</li><li>Describe the problem</li><li>Describe the main flow</li><li>Describe the visual tone</li><li>Describe the constraints of the MVP</li></ul>","plainText":"Prompting\nFor UX Prototypes\n- Describe the goal\n- Describe the user\n- Describe the problem\n- Describe the main flow\n- Describe the visual tone\n- Describe the constraints of the MVP","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":15,"title":"Prompting","template":"","html":"<h1>Prompting</h1>\n<h2>For UX Prototypes</h2>\n<h3>A Weak Prompt</h3>\n<p><code>Create an app for roommates</code></p>\n<ul><li>Unclear user need</li><li>No main task</li><li>No interface direction</li><li>No scope</li></ul>","plainText":"Prompting\nFor UX Prototypes\nA Weak Prompt\nCreate an app for roommates\n\n- Unclear user need\n- No main task\n- No interface direction\n- No scope","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":16,"title":"Prompting","template":"","html":"<h1>Prompting</h1>\n<h2>For UX Prototypes</h2>\n<h3>A Better Prompt</h3>\n<p><code>Create a simple web app prototype for roommates who want to track shared groceries. The MVP should let users add an item, mark who bought it, and see who owes what. Use a clean mobile-first layout with a list view, a summary area, and only the essential actions.</code></p>","plainText":"Prompting\nFor UX Prototypes\nA Better Prompt\nCreate a simple web app prototype for roommates who want to track shared groceries. The MVP should let users add an item, mark who bought it, and see who owes what. Use a clean mobile-first layout with a list view, a summary area, and only the essential actions.","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":17,"title":"Prompt Structure","template":"","html":"<h1>Prompt Structure</h1>\n<ol><li>Describe the goal</li><li>Describe the context</li><li>Describe the constraints</li><li>Describe the desired output</li><li>Add examples if they help</li></ol>","plainText":"Prompt Structure\n\n1. Describe the goal\n2. Describe the context\n3. Describe the constraints\n4. Describe the desired output\n5. Add examples if they help","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":18,"title":"Prompting","template":"marked-text","html":"<h1><span class=\"marked\">Prompting</span></h1>\n<h2><span class=\"marked\">Best Practices</span></h2>\n<ul><li><span class=\"marked\">Understand the model’s capabilities</span></li><li><span class=\"marked\">Stay within one clear scope</span></li><li><span class=\"marked\">Ask for one thing at a time</span></li><li><span class=\"marked\">Include as much context as possible</span></li><li><span class=\"marked\">Include constraints</span></li></ul>","plainText":"Prompting\nBest Practices\n- Understand the model’s capabilities\n- Stay within one clear scope\n- Ask for one thing at a time\n- Include as much context as possible\n- Include constraints","notesHtml":"","notesText":"","background":{"type":"image","value":"https://d2w9rnfcy7mm78.cloudfront.net/9767920/original_6e085fcaa4a93861f3bc6da4a1261007.jpg?1607095469?bc=0"}},{"index":19,"title":"Assignment","template":"","html":"<h1>Assignment</h1>\n<p>We will create the base version of a simple habit tracking app together in Google AI Studio.</p>\n<p><strong>Base app: Habit Buddy</strong></p>\n<ul><li>User: students or young adults who want to build small daily habits</li><li>Problem: staying consistent is hard when progress is not visible</li><li>Main flow: see habits, add a habit, mark today as done, check progress</li><li>Tone: friendly, calm, playful, mobile-first</li><li>MVP constraints: no login, no payments, no complex settings, no notifications</li></ul>\n<p><strong>Your task</strong> Add one new feature to the app.</p>\n<p>The feature should extend the existing idea, fit into the current user flow, be small enough to build quickly, and make the app more useful for its target user.</p>","plainText":"Assignment\nWe will create the base version of a simple habit tracking app together in Google AI Studio.\n\nBase app: Habit Buddy\n- User: students or young adults who want to build small daily habits\n- Problem: staying consistent is hard when progress is not visible\n- Main flow: see habits, add a habit, mark today as done, check progress\n- Tone: friendly, calm, playful, mobile-first\n- MVP constraints: no login, no payments, no complex settings, no notifications\n\nYour task\nAdd one new feature to the app.\n\nThe feature should extend the existing idea, fit into the current user flow, be small enough to build quickly, and make the app more useful for its target user.","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":20,"title":"Reference","template":"","html":"<h1>Reference</h1>\n<p><a href=\"https://simonwillison.net/guides/agentic-engineering-patterns/how-coding-agents-work/#chat-templated-prompts\" target=\"_blank\" rel=\"noreferrer\">How Coding Agents Work</a></p>","plainText":"Reference\nHow Coding Agents Work","notesHtml":"","notesText":"","background":{"type":"none","value":""}}];
+      const params = new URLSearchParams(window.location.search);
+      const liveReloadEnabled = params.get("liveReload") === "1";
+      const presentationName = "HMIT2 - User Flows and Prompting";
+      const channel = new BroadcastChannel(CHANNEL_NAME);
+      const currentMeta = document.getElementById("current-meta");
+      const currentSlide = document.getElementById("current-slide");
+      const nextSlide = document.getElementById("next-slide");
+      const notes = document.getElementById("notes");
+      const prevButton = document.getElementById("prev-button");
+      const nextButton = document.getElementById("next-button");
+      const presentationPath = "HMIT2 - User Flows and Prompting.html";
+      let currentIndex = 0;
+
+      function readIndexFromQuery() {
+        const params = new URLSearchParams(window.location.search);
+        const rawValue = params.get("slide");
+        const parsed = Number(rawValue);
+
+        if (!Number.isInteger(parsed)) {
+          return 0;
+        }
+
+        return parsed - 1;
+      }
+
+      function writeIndexToQuery(index) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("slide", String(index + 1));
+        window.history.replaceState({}, "", url);
+      }
+
+      function setupLiveReload() {
+        if (!liveReloadEnabled || window.location.protocol !== "http:") {
+          return;
+        }
+
+        const eventsUrl = new URL("/events", window.location.origin);
+        eventsUrl.searchParams.set("name", presentationName);
+
+        const source = new EventSource(eventsUrl);
+        source.addEventListener("reload", () => {
+          window.location.reload();
+        });
+      }
+
+      function renderSlidePreview(container, slide) {
+        if (!slide) {
+          container.innerHTML = '<div class="notes-empty">No slide</div>';
+          return;
+        }
+
+        const url = new URL(presentationPath, window.location.href);
+        url.searchParams.set("slide", String(slide.index + 1));
+        url.searchParams.set("preview", "1");
+        if (liveReloadEnabled) {
+          url.searchParams.set("liveReload", "1");
+        }
+        container.innerHTML = '<iframe loading="eager" referrerpolicy="no-referrer" src="' + url.toString() + '"></iframe>';
+      }
+
+      function renderNotesPanel(slide) {
+        if (!slide || !slide.notesHtml) {
+          notes.innerHTML = '<div class="notes-empty">No notes for this slide.</div>';
+          return;
+        }
+
+        notes.innerHTML = slide.notesHtml;
+      }
+
+      function render(index) {
+        currentIndex = Math.max(0, Math.min(index, SLIDES.length - 1));
+        writeIndexToQuery(currentIndex);
+        const current = SLIDES[currentIndex] || null;
+        const next = SLIDES[currentIndex + 1] || null;
+
+        currentMeta.innerHTML =
+          '<strong>' +
+          (currentIndex + 1) +
+          ' / ' +
+          SLIDES.length +
+          '</strong><span>' +
+          (current ? current.title : '') +
+          '</span>';
+
+        renderSlidePreview(currentSlide, current);
+        renderSlidePreview(nextSlide, next);
+        renderNotesPanel(current);
+        prevButton.disabled = currentIndex <= 0;
+        nextButton.disabled = currentIndex >= SLIDES.length - 1;
+        document.title = (current?.title || "HMIT2 - User Flows and Prompting") + ' Notes | ' + "HMIT2 - User Flows and Prompting.md";
+      }
+
+      prevButton.addEventListener("click", () => {
+        channel.postMessage({ type: "navigate", source: "notes", direction: -1 });
+      });
+
+      nextButton.addEventListener("click", () => {
+        channel.postMessage({ type: "navigate", source: "notes", direction: 1 });
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowRight" || event.key === " " || event.key === "PageDown") {
+          event.preventDefault();
+          channel.postMessage({ type: "navigate", source: "notes", direction: 1 });
+        } else if (event.key === "ArrowLeft" || event.key === "PageUp") {
+          event.preventDefault();
+          channel.postMessage({ type: "navigate", source: "notes", direction: -1 });
+        }
+      });
+
+      channel.addEventListener("message", (event) => {
+        const message = event.data || {};
+        if (message.type === "state" && typeof message.index === "number") {
+          render(message.index);
+        }
+      });
+
+      window.addEventListener("load", () => {
+        render(readIndexFromQuery());
+        channel.postMessage({ type: "request-state", source: "notes" });
+        setupLiveReload();
+      });
+    </script>
+  </body>
+</html>

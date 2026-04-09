@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HMIT2 - Introduction</title>
+    <link rel="prefetch" as="image" href="https://d2w9rnfcy7mm78.cloudfront.net/20507827/original_bbc6b42c7014d3078691b8239f736839.png?1677061040?bc=0" />
+    <link rel="prefetch" as="image" href="assets/Pasted image 20260408114803.png" />
+    <style>
+
+    :root {
+      --slide-padding-x: 4.5rem;
+      --slide-padding-y: 3rem;
+      --headline-font: "Arial Narrow", Arial, sans-serif;
+      --body-font: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --text-color: #111111;
+      --muted-color: #5b5b5b;
+      --border-color: rgba(17, 17, 17, 0.12);
+      --panel-color: rgba(255, 255, 255, 0.92);
+      --shadow-color: rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: #ffffff;
+      color: var(--text-color);
+      font-family: var(--body-font);
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      margin: 0 0 1rem;
+      font-family: var(--headline-font);
+      font-weight: 100;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+    }
+
+    h1 {
+      font-size: clamp(3.2rem, 7vw, 6.6rem);
+    }
+
+    h2 {
+      font-size: clamp(2.6rem, 5vw, 4.8rem);
+    }
+
+    h3 {
+      font-size: clamp(2rem, 4vw, 3.4rem);
+    }
+
+    p,
+    li,
+    blockquote,
+    code,
+    center {
+      font-size: clamp(2.05rem, 2.7vw, 2.55rem);
+      line-height: 1.45;
+    }
+
+    center {
+      display: block;
+    }
+
+    p,
+    ul,
+    ol,
+    pre,
+    blockquote {
+      margin: 0 0 1rem;
+    }
+
+    ul,
+    ol {
+      padding-left: 1.35em;
+    }
+
+    a {
+      color: #1557ff;
+      text-decoration-thickness: 0.08em;
+      text-underline-offset: 0.14em;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+    }
+
+    :not(pre) > code {
+      padding: 0.08em 0.28em;
+      background: #f3f3f3;
+    }
+
+    pre {
+      overflow-x: auto;
+      overflow-y: visible;
+      padding: 1rem 1.2rem;
+      border: 0.0625rem solid var(--border-color);
+      background: #f3f3f3;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    img,
+    video {
+      max-width: 100%;
+    }
+
+    .slide-media {
+      display: block;
+      width: auto;
+      max-width: min(100%, 78rem);
+      max-height: 58vh;
+      object-fit: contain;
+      margin: 1rem 0;
+    }
+
+    .slide-deck {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      padding: var(--slide-padding-y) var(--slide-padding-x);
+      background: #ffffff;
+      overflow-x: hidden;
+      overflow-y: auto;
+      isolation: isolate;
+    }
+
+    .slide.is-active {
+      display: block;
+    }
+
+    .slide-background {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+    }
+
+    .slide-background-image {
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    .slide-background-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .slide-content {
+      position: relative;
+      width: 100%;
+      max-width: 90rem;
+      margin: 0 auto;
+      text-align: left;
+      padding-bottom: 3rem;
+    }
+
+    .slide.template-cover {
+      display: none;
+      align-items: flex-end;
+      background:
+        radial-gradient(circle at top left, rgba(21, 87, 255, 0.14), transparent 28%),
+        linear-gradient(180deg, #faf7f1 0%, #ffffff 48%, #f2f5ff 100%);
+    }
+
+    .slide.template-cover.is-active {
+      display: flex;
+    }
+
+    .slide.template-cover .slide-content {
+      display: flex;
+      align-items: flex-end;
+      min-height: 100%;
+      max-width: 100%;
+      padding-bottom: 0;
+    }
+
+    .cover-slide {
+      width: min(100%, 64rem);
+      padding: 0 0 4vh;
+    }
+
+    .cover-slide-kicker {
+      margin-bottom: 1.2rem;
+      font-size: 0.95rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted-color);
+    }
+
+    .cover-slide-title {
+      margin-bottom: 1.5rem;
+    }
+
+    .cover-slide-date {
+      font-size: clamp(1.1rem, 2vw, 1.5rem);
+      color: var(--muted-color);
+    }
+
+    .slide.template-image-right {
+      padding-top: 0;
+      padding-bottom: 0;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .slide.template-image-right .slide-content {
+      max-width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      padding-bottom: 0;
+    }
+
+    .right-half-image-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 50%;
+      min-height: 100vh;
+    }
+
+    .right-half-image-copy {
+      padding: var(--slide-padding-y) var(--slide-padding-x);
+      align-self: center;
+    }
+
+    .right-half-image-panel {
+      min-height: 100vh;
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    .slide.template-marked-text,
+    .slide.template-marked-text a,
+    .slide.template-marked-text h1,
+    .slide.template-marked-text h2,
+    .slide.template-marked-text h3,
+    .slide.template-marked-text h4,
+    .slide.template-marked-text h5,
+    .slide.template-marked-text h6,
+    .slide.template-marked-text p,
+    .slide.template-marked-text li,
+    .slide.template-marked-text blockquote,
+    .slide.template-marked-text center {
+      color: #ffffff;
+    }
+
+    .marked {
+      background-color: #000000;
+      color: #ffffff;
+      padding: 0.1em 0.2em;
+      line-height: 1.5em;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+
+    ul,
+    ol {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    li {
+      position: relative;
+      padding-left: 1.2em;
+    }
+
+    li::before {
+      content: "-";
+      position: absolute;
+      left: 0;
+      color: currentColor;
+    }
+
+    .token.comment {
+      color: #6b7280;
+    }
+
+    .token.keyword {
+      color: #9a3412;
+      font-weight: 600;
+    }
+
+    .token.string {
+      color: #1d4ed8;
+    }
+
+    .token.number,
+    .token.boolean {
+      color: #047857;
+    }
+
+    .slide-number {
+      position: fixed;
+      right: 1rem;
+      bottom: 0.8rem;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(17, 17, 17, 0.56);
+      z-index: 20;
+    }
+
+    .fullscreen-toggle {
+      appearance: none;
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      border: 0.0625rem solid var(--border-color);
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text-color);
+      padding: 0.55rem 0.8rem;
+      font: inherit;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      z-index: 20;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 120ms ease;
+    }
+
+    .fullscreen-toggle.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .fullscreen-toggle:hover {
+      background: #ffffff;
+    }
+
+    .presentation-title {
+      position: fixed;
+      left: 1rem;
+      bottom: 0.8rem;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(17, 17, 17, 0.56);
+      z-index: 20;
+    }
+
+    @media (max-width: 56.25rem) {
+      :root {
+        --slide-padding-x: 1.4rem;
+        --slide-padding-y: 1.6rem;
+      }
+
+      .slide-media {
+        max-height: 44vh;
+      }
+
+      .slide.template-image-right {
+        padding: 0;
+      }
+
+      .slide.template-image-right .slide-content,
+      .right-half-image-layout,
+      .right-half-image-panel {
+        min-height: auto;
+      }
+
+      .right-half-image-layout {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .right-half-image-copy {
+        padding-right: 0;
+      }
+
+      .right-half-image-panel {
+        min-height: 35vh;
+      }
+    }
+  
+    </style>
+  </head>
+  <body>
+    <main class="slide-deck" id="deck">
+      <section class="slide template-cover" data-slide-index="0" aria-label="Slide 1 of 9">
+      
+      <div class="slide-content">
+        <div class="cover-slide">
+        <p class="cover-slide-kicker">Presentation</p>
+        <h1 class="cover-slide-title">HMIT2 - Introduction</h1>
+        <p class="cover-slide-date">April 2026</p>
+      </div>
+      </div>
+    </section>
+<section class="slide" data-slide-index="1" aria-label="Slide 2 of 9">
+      
+      <div class="slide-content">
+        <h1>Human-Machine Interaction Technology 2</h1>
+<h2>Introduction</h2>
+<p>Summer Semester 2026</p>
+      </div>
+    </section>
+<section class="slide template-marked-text" data-slide-index="2" aria-label="Slide 3 of 9">
+      <div class="slide-background slide-background-image" style="background-image:url('https://d2w9rnfcy7mm78.cloudfront.net/20507827/original_bbc6b42c7014d3078691b8239f736839.png?1677061040?bc=0');"></div>
+      <div class="slide-content">
+        <h1><span class="marked">AI-Assisted Prototyping</span></h1>
+<ul><li><span class="marked">Turning an idea into a testable web app quickly</span></li><li><span class="marked">Using AI to explore, generate, and refine concepts</span></li><li><span class="marked">Focusing on iteration instead of technical perfection</span></li></ul>
+      </div>
+    </section>
+<section class="slide" data-slide-index="3" aria-label="Slide 4 of 9">
+      
+      <div class="slide-content">
+        <h1>What Makes a Good App Idea?</h1>
+<ul><li>Simple</li><li>Useful</li><li>Testable</li><li>Focused on one clear problem (problem statement)</li></ul>
+      </div>
+    </section>
+<section class="slide" data-slide-index="4" aria-label="Slide 5 of 9">
+      
+      <div class="slide-content">
+        <h1>What Makes a Good App Idea?</h1>
+<h2>Examples</h2>
+<h3>Splitwise</h3>
+<p>How can groups track shared expenses without confusion?</p>
+<h3>Vinted</h3>
+<p>How can people easily resell clothes they no longer wear?</p>
+<h3>Too Good To Go</h3>
+<p>How can local shops sell surplus food instead of throwing it away?</p>
+      </div>
+    </section>
+<section class="slide" data-slide-index="5" aria-label="Slide 6 of 9">
+      
+      <div class="slide-content">
+        <h1>Google AI Studio</h1>
+<ul><li>Creates fully functioning web apps</li><li>Output must still be reviewed critically</li></ul>
+<p><img class="slide-media" src="assets/Pasted image 20260408114803.png" alt="" /></p>
+      </div>
+    </section>
+<section class="slide template-image-right" data-slide-index="6" aria-label="Slide 7 of 9">
+      
+      <div class="slide-content">
+        <div class="right-half-image-layout">
+      <div class="right-half-image-copy">
+        <h1>MVP Thinking</h1>
+<p>Minimum Viable Product: The smallest testable version of the core value.</p>
+<ul><li>Start small</li><li>Focus on solving one main problem</li><li>Keep only the essential features</li></ul>
+      </div>
+      <div class="right-half-image-panel" role="img" aria-label="" style="background-image:url('https://d2w9rnfcy7mm78.cloudfront.net/16531691/original_8c9b180cffadfe84d8fb85d8ce63f954.jpg?1652999217?bc=0');"></div>
+    </div>
+      </div>
+    </section>
+<section class="slide" data-slide-index="7" aria-label="Slide 8 of 9">
+      
+      <div class="slide-content">
+        <h1>MVP Thinking</h1>
+<h2>Amazon</h2>
+<p><strong>Which features does Amazon provide today?</strong></p>
+<p>---</p>
+<h1>MVP Thinking</h1>
+<h2>Amazon</h2>
+<p><strong>How would an Amazon MVP look like?</strong></p>
+<p>---</p>
+<h1>MVP Thinking</h1>
+<h2>Amazon</h2>
+<p><strong>Amazon MVP</strong></p>
+<ul><li>Problem to solve: How can people find and buy the exact book they want, even if a local bookstore does not have it?</li><li>Why books?</li><li>Huge catalog → huge potential customer base, predictable demand</li><li>Simple logistics → simple to store, pack and ship</li><li>Standardized, predictable product → felt less risky to buy, low return rates</li></ul>
+<p>Today Amazon solves a much bigger problem: Buy everything online.</p>
+<p>---</p>
+<h1>Problem Harvest</h1>
+<p><strong>List 20 small frustrations people experience in everyday life</strong></p>
+<ul><li>no solutions</li><li>no app ideas</li><li>only annoying, repeated, real situations</li></ul>
+<p><strong>Questions you might ask</strong></p>
+<ul><li>“What wastes time?”</li><li>“What is confusing?”</li><li>“What do people forget?”</li><li>“What causes coordination problems?”</li><li>“What feels unnecessarily hard?”</li><li>“What do people do with screenshots, notes, or WhatsApp because no better tool exists?”</li></ul>
+<p>---</p>
+<h1>Problem Harvest</h1>
+<p><strong>Filter each problem</strong></p>
+<p>| Problem       | Scale  | Frequency | Pain   | App    | | ------------- | ------ | --------- | ------ | ------ | | <strong>Problem 1</strong> | 1 – 10 | 1 – 10    | 1 – 10 | 1 – 10 | | <strong>Problem 2</strong> | 1 – 10 | 1 – 10    | 1 – 10 | 1 – 10 |</p>
+<p>Pick your top candidates and write a problem statement for each of them. A clear problem statement follows the pattern:</p>
+<p>“\[<strong>Who</strong>\] struggles to \[<strong>job</strong>\] because of \[<strong>obstacle</strong>\], leading to \[<strong>undesired outcome</strong>\]”</p>
+<p>Example: “<strong>Remote teams</strong> struggle to <strong>stay aligned and communicate efficiently</strong> because of <strong>fragmented tools and endless email threads</strong>, leading to <strong>misunderstandings, slower decisions, and reduced team productivity</strong>” (Slack)</p>
+      </div>
+    </section>
+<section class="slide" data-slide-index="8" aria-label="Slide 9 of 9">
+      
+      <div class="slide-content">
+        <h1>Assignment</h1>
+<p>Until next lesson, find two feasible app ideas that follow the above principles and define the MVP for each of them.</p>
+      </div>
+    </section>
+    </main>
+    <button class="fullscreen-toggle" id="fullscreen-toggle" type="button">Fullscreen</button>
+    <div class="presentation-title">HMIT2 - Introduction</div>
+    <div class="slide-number" id="slide-number"></div>
+    <script>
+      const CHANNEL_NAME = "presentation-users-ml-library-mobile-documents-icloud-md-obsidian-documents-main-vault-uni-hmit2-introduction-md";
+      const SLIDES = [{"index":0,"title":"HMIT2 - Introduction","template":"cover","html":"<div class=\"cover-slide\">\n        <p class=\"cover-slide-kicker\">Presentation</p>\n        <h1 class=\"cover-slide-title\">HMIT2 - Introduction</h1>\n        <p class=\"cover-slide-date\">April 2026</p>\n      </div>","plainText":"HMIT2 - Introduction\nApril 2026","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":1,"title":"Human-Machine Interaction Technology 2","template":"","html":"<h1>Human-Machine Interaction Technology 2</h1>\n<h2>Introduction</h2>\n<p>Summer Semester 2026</p>","plainText":"Human-Machine Interaction Technology 2\nIntroduction\nSummer Semester 2026","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":2,"title":"AI-Assisted Prototyping","template":"marked-text","html":"<h1><span class=\"marked\">AI-Assisted Prototyping</span></h1>\n<ul><li><span class=\"marked\">Turning an idea into a testable web app quickly</span></li><li><span class=\"marked\">Using AI to explore, generate, and refine concepts</span></li><li><span class=\"marked\">Focusing on iteration instead of technical perfection</span></li></ul>","plainText":"AI-Assisted Prototyping\n- Turning an idea into a testable web app quickly\n- Using AI to explore, generate, and refine concepts\n- Focusing on iteration instead of technical perfection","notesHtml":"","notesText":"","background":{"type":"image","value":"https://d2w9rnfcy7mm78.cloudfront.net/20507827/original_bbc6b42c7014d3078691b8239f736839.png?1677061040?bc=0"}},{"index":3,"title":"What Makes a Good App Idea?","template":"","html":"<h1>What Makes a Good App Idea?</h1>\n<ul><li>Simple</li><li>Useful</li><li>Testable</li><li>Focused on one clear problem (problem statement)</li></ul>","plainText":"What Makes a Good App Idea?\n- Simple\n- Useful\n- Testable\n- Focused on one clear problem (problem statement)","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":4,"title":"What Makes a Good App Idea?","template":"","html":"<h1>What Makes a Good App Idea?</h1>\n<h2>Examples</h2>\n<h3>Splitwise</h3>\n<p>How can groups track shared expenses without confusion?</p>\n<h3>Vinted</h3>\n<p>How can people easily resell clothes they no longer wear?</p>\n<h3>Too Good To Go</h3>\n<p>How can local shops sell surplus food instead of throwing it away?</p>","plainText":"What Makes a Good App Idea?\nExamples\n\nSplitwise\nHow can groups track shared expenses without confusion?\nVinted\nHow can people easily resell clothes they no longer wear?\nToo Good To Go\nHow can local shops sell surplus food instead of throwing it away?","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":5,"title":"Google AI Studio","template":"","html":"<h1>Google AI Studio</h1>\n<ul><li>Creates fully functioning web apps</li><li>Output must still be reviewed critically</li></ul>\n<p><img class=\"slide-media\" src=\"assets/Pasted image 20260408114803.png\" alt=\"\" /></p>","plainText":"Google AI Studio\n- Creates fully functioning web apps\n- Output must still be reviewed critically\n\nPasted image 20260408114803.png|720","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":6,"title":"MVP Thinking","template":"image-right","html":"<div class=\"right-half-image-layout\">\n      <div class=\"right-half-image-copy\">\n        <h1>MVP Thinking</h1>\n<p>Minimum Viable Product: The smallest testable version of the core value.</p>\n<ul><li>Start small</li><li>Focus on solving one main problem</li><li>Keep only the essential features</li></ul>\n      </div>\n      <div class=\"right-half-image-panel\" role=\"img\" aria-label=\"\" style=\"background-image:url('https://d2w9rnfcy7mm78.cloudfront.net/16531691/original_8c9b180cffadfe84d8fb85d8ce63f954.jpg?1652999217?bc=0');\"></div>\n    </div>","plainText":"MVP Thinking\nMinimum Viable Product: The smallest testable version of the core value.\n\n- Start small\n- Focus on solving one main problem\n- Keep only the essential features\n\n https://d2w9rnfcy7mm78.cloudfront.net/16531691/original_8c9b180cffadfe84d8fb85d8ce63f954.jpg?1652999217?bc=0","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":7,"title":"MVP Thinking","template":"","html":"<h1>MVP Thinking</h1>\n<h2>Amazon</h2>\n<p><strong>Which features does Amazon provide today?</strong></p>\n<p>---</p>\n<h1>MVP Thinking</h1>\n<h2>Amazon</h2>\n<p><strong>How would an Amazon MVP look like?</strong></p>\n<p>---</p>\n<h1>MVP Thinking</h1>\n<h2>Amazon</h2>\n<p><strong>Amazon MVP</strong></p>\n<ul><li>Problem to solve: How can people find and buy the exact book they want, even if a local bookstore does not have it?</li><li>Why books?</li><li>Huge catalog → huge potential customer base, predictable demand</li><li>Simple logistics → simple to store, pack and ship</li><li>Standardized, predictable product → felt less risky to buy, low return rates</li></ul>\n<p>Today Amazon solves a much bigger problem: Buy everything online.</p>\n<p>---</p>\n<h1>Problem Harvest</h1>\n<p><strong>List 20 small frustrations people experience in everyday life</strong></p>\n<ul><li>no solutions</li><li>no app ideas</li><li>only annoying, repeated, real situations</li></ul>\n<p><strong>Questions you might ask</strong></p>\n<ul><li>“What wastes time?”</li><li>“What is confusing?”</li><li>“What do people forget?”</li><li>“What causes coordination problems?”</li><li>“What feels unnecessarily hard?”</li><li>“What do people do with screenshots, notes, or WhatsApp because no better tool exists?”</li></ul>\n<p>---</p>\n<h1>Problem Harvest</h1>\n<p><strong>Filter each problem</strong></p>\n<p>| Problem       | Scale  | Frequency | Pain   | App    | | ------------- | ------ | --------- | ------ | ------ | | <strong>Problem 1</strong> | 1 – 10 | 1 – 10    | 1 – 10 | 1 – 10 | | <strong>Problem 2</strong> | 1 – 10 | 1 – 10    | 1 – 10 | 1 – 10 |</p>\n<p>Pick your top candidates and write a problem statement for each of them. A clear problem statement follows the pattern:</p>\n<p>“\\[<strong>Who</strong>\\] struggles to \\[<strong>job</strong>\\] because of \\[<strong>obstacle</strong>\\], leading to \\[<strong>undesired outcome</strong>\\]”</p>\n<p>Example: “<strong>Remote teams</strong> struggle to <strong>stay aligned and communicate efficiently</strong> because of <strong>fragmented tools and endless email threads</strong>, leading to <strong>misunderstandings, slower decisions, and reduced team productivity</strong>” (Slack)</p>","plainText":"MVP Thinking\nAmazon\n\nWhich features does Amazon provide today?\n\n--- \nMVP Thinking\nAmazon\n\nHow would an Amazon MVP look like?\n\n--- \nMVP Thinking\nAmazon\n\nAmazon MVP\n- Problem to solve: How can people find and buy the exact book they want, even if a local bookstore does not have it?\n- Why books?\n\t- Huge catalog → huge potential customer base, predictable demand\n\t- Simple logistics → simple to store, pack and ship\n\t- Standardized, predictable product → felt less risky to buy, low return rates\n\nToday Amazon solves a much bigger problem: Buy everything online.\n\n--- \nProblem Harvest\nList 20 small frustrations people experience in everyday life\n\t- no solutions\n\t- no app ideas\n\t- only annoying, repeated, real situations\n\nQuestions you might ask \n- “What wastes time?”\n- “What is confusing?”\n- “What do people forget?”\n- “What causes coordination problems?”\n- “What feels unnecessarily hard?”\n- “What do people do with screenshots, notes, or WhatsApp because no better tool exists?”\n\n--- \nProblem Harvest\nFilter each problem\n\n| Problem       | Scale  | Frequency | Pain   | App    |\n| ------------- | ------ | --------- | ------ | ------ |\n| Problem 1 | 1 – 10 | 1 – 10    | 1 – 10 | 1 – 10 |\n| Problem 2 | 1 – 10 | 1 – 10    | 1 – 10 | 1 – 10 |\n\nPick your top candidates and write a problem statement for each of them. A clear problem statement follows the pattern:\n\n“\\[Who\\] struggles to \\[job\\] because of \\[obstacle\\], leading to \\[undesired outcome\\]”\n\nExample: “Remote teams struggle to stay aligned and communicate efficiently because of fragmented tools and endless email threads, leading to misunderstandings, slower decisions, and reduced team productivity” (Slack)","notesHtml":"","notesText":"","background":{"type":"none","value":""}},{"index":8,"title":"Assignment","template":"","html":"<h1>Assignment</h1>\n<p>Until next lesson, find two feasible app ideas that follow the above principles and define the MVP for each of them.</p>","plainText":"Assignment\nUntil next lesson, find two feasible app ideas that follow the above principles and define the MVP for each of them.","notesHtml":"","notesText":"","background":{"type":"none","value":""}}];
+      const IMAGE_ASSETS = ["https://d2w9rnfcy7mm78.cloudfront.net/20507827/original_bbc6b42c7014d3078691b8239f736839.png?1677061040?bc=0","assets/Pasted image 20260408114803.png"];
+      const params = new URLSearchParams(window.location.search);
+      const isPreview = params.get("preview") === "1";
+      const liveReloadEnabled = params.get("liveReload") === "1";
+      const presentationName = "HMIT2 - Introduction";
+      const channel = isPreview ? null : new BroadcastChannel(CHANNEL_NAME);
+      const slideElements = Array.from(document.querySelectorAll(".slide"));
+      const slideNumber = document.getElementById("slide-number");
+      const fullscreenToggle = document.getElementById("fullscreen-toggle");
+      let currentIndex = 0;
+
+      function readIndexFromQuery() {
+        const params = new URLSearchParams(window.location.search);
+        const rawValue = params.get("slide");
+        const parsed = Number(rawValue);
+
+        if (!Number.isInteger(parsed)) {
+          return 0;
+        }
+
+        return parsed - 1;
+      }
+
+      function writeIndexToQuery(index) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("slide", String(index + 1));
+        window.history.replaceState({}, "", url);
+      }
+
+      function clampIndex(index) {
+        return Math.max(0, Math.min(index, slideElements.length - 1));
+      }
+
+      function prefetchImages() {
+        IMAGE_ASSETS.forEach((asset) => {
+          const image = new Image();
+          image.decoding = "async";
+          image.src = asset;
+        });
+      }
+
+      function setupLiveReload() {
+        if (!liveReloadEnabled || isPreview || window.location.protocol !== "http:") {
+          return;
+        }
+
+        const eventsUrl = new URL("/events", window.location.origin);
+        eventsUrl.searchParams.set("name", presentationName);
+
+        const source = new EventSource(eventsUrl);
+        source.addEventListener("reload", () => {
+          window.location.reload();
+        });
+      }
+
+      function canToggleFullscreen() {
+        return typeof document.documentElement.requestFullscreen === "function";
+      }
+
+      function shouldShowFullscreenButton(event) {
+        return window.innerWidth - event.clientX <= 120 && event.clientY <= 88;
+      }
+
+      function updateFullscreenButton() {
+        if (!fullscreenToggle) {
+          return;
+        }
+
+        if (isPreview || !canToggleFullscreen()) {
+          fullscreenToggle.style.display = "none";
+          fullscreenToggle.classList.remove("is-visible");
+          return;
+        }
+
+        fullscreenToggle.style.display = "";
+        fullscreenToggle.textContent = document.fullscreenElement ? "Exit Fullscreen" : "Fullscreen";
+      }
+
+      async function enterFullscreen() {
+        if (!canToggleFullscreen()) {
+          return;
+        }
+
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+        }
+      }
+
+      async function exitFullscreen() {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+        }
+      }
+
+      async function toggleFullscreen() {
+        if (document.fullscreenElement) {
+          await exitFullscreen();
+        } else {
+          await enterFullscreen();
+        }
+      }
+
+      function postState() {
+        if (!channel) {
+          return;
+        }
+
+        channel.postMessage({
+          type: "state",
+          source: "presentation",
+          index: currentIndex,
+          slides: SLIDES.length,
+          current: SLIDES[currentIndex] || null,
+          next: SLIDES[currentIndex + 1] || null
+        });
+      }
+
+      function render(index, shouldBroadcast = true) {
+        currentIndex = clampIndex(index);
+        writeIndexToQuery(currentIndex);
+        slideElements.forEach((slide, slideIndex) => {
+          slide.classList.toggle("is-active", slideIndex === currentIndex);
+        });
+        slideNumber.textContent = (currentIndex + 1) + " / " + slideElements.length;
+        slideNumber.style.display = isPreview ? "none" : "";
+        document.title = (SLIDES[currentIndex]?.title || "HMIT2 - Introduction") + " | " + "HMIT2 - Introduction.md";
+
+        if (shouldBroadcast && !isPreview) {
+          postState();
+        }
+      }
+
+      function goTo(index) {
+        render(index, true);
+      }
+
+      function step(direction) {
+        goTo(currentIndex + direction);
+      }
+
+      if (!isPreview) {
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "ArrowRight" || event.key === " " || event.key === "PageDown") {
+            event.preventDefault();
+            step(1);
+          } else if (event.key === "ArrowLeft" || event.key === "PageUp") {
+            event.preventDefault();
+            step(-1);
+          } else if (event.key.toLowerCase() === "f" && !document.fullscreenElement) {
+            event.preventDefault();
+            enterFullscreen().catch(() => {});
+          }
+        });
+
+        channel.addEventListener("message", (event) => {
+          const message = event.data || {};
+          if (message.source === "presentation") {
+            return;
+          }
+
+          if (message.type === "request-state") {
+            postState();
+          } else if (message.type === "navigate") {
+            if (typeof message.index === "number") {
+              render(message.index, true);
+            } else if (typeof message.direction === "number") {
+              render(currentIndex + message.direction, true);
+            }
+          }
+        });
+      }
+
+      window.addEventListener("load", () => {
+        render(readIndexFromQuery(), !isPreview);
+        if (!isPreview) {
+          prefetchImages();
+        }
+        setupLiveReload();
+        updateFullscreenButton();
+      });
+
+      if (fullscreenToggle) {
+        fullscreenToggle.addEventListener("click", () => {
+          toggleFullscreen().catch(() => {});
+        });
+      }
+
+      document.addEventListener("mousemove", (event) => {
+        if (!fullscreenToggle || isPreview || !canToggleFullscreen()) {
+          return;
+        }
+
+        fullscreenToggle.classList.toggle("is-visible", shouldShowFullscreenButton(event));
+      });
+
+      document.addEventListener("fullscreenchange", updateFullscreenButton);
+    </script>
+  </body>
+</html>
