@@ -1,5 +1,7 @@
 # Presentation Builder
 
+This repo is now a Go + Wails application. The management UI runs in a native Wails window, while generated presentations and notes still open in the system browser from a local Go HTTP server.
+
 Write a presentation in one Obsidian-flavored Markdown file, then generate two standalone HTML files:
 
 - `your-talk.html`
@@ -9,26 +11,30 @@ The generated files inline their CSS and JavaScript. Referenced local assets are
 
 ## What This Repo Contains
 
-- `build.js`: converts one Markdown file into a slide deck and a notes view
-- `serve.js`: local server for opening, rebuilding, and live-reloading generated decks
+- `builder.go`: native presentation builder for Markdown to slides + notes HTML
+- `main.go` / `app.go`: Wails app entrypoint and Go backend for the native management window
+- `frontend/`: embedded Wails frontend assets
 - `presentations/`: generated output folders
+- `legacy/node/`: archived Node implementation kept only for reference
 
 This repo does not currently store the source Markdown files for the sample presentations. Those are expected to live wherever you author them.
 
 ## Requirements
 
-- Node.js
-- no install step and no external npm dependencies
+- Go
+- Wails CLI
 
 ## Quick Start
 
-Start the local server:
+Run the native app in dev mode:
 
 ```bash
-npm start
+wails dev
 ```
 
-Open `http://127.0.0.1:4747/` in your browser, then enter the absolute path to your Markdown file in the build form.
+The Wails window is the manager UI. When you open slides or notes, they launch in your default browser from a local Go HTTP server on an ephemeral loopback port.
+
+The native app handles building, rebuilding, local asset serving, source-file watching, browser opening, and deck live reload without any Node runtime.
 
 ## Output
 
@@ -45,37 +51,25 @@ That folder contains:
 - `presentation.json`
 - `assets/` for copied local images and videos when needed
 
-`presentation.json` stores the original absolute source path so the local server can rebuild and watch the Markdown file later.
+`presentation.json` stores the original absolute source path so the app can rebuild and watch the Markdown file later.
 
-## Local Server
+## Browser Windows
 
 Do not open the generated files with `file://` if you want slide syncing, notes syncing, or live reload.
-The presentation window and notes window communicate through `BroadcastChannel`, which needs the same origin.
+The presentation and notes windows communicate through `BroadcastChannel`, which needs the same origin.
 
-The home page at `http://127.0.0.1:4747/` shows:
-
-- generated presentations
-- links to open slides and notes
-- a form to build a presentation from a Markdown path
-- a rebuild button for presentations with saved source metadata
-- a live reload toggle per presentation
-
-When live reload is enabled, the server watches the original Markdown file, rebuilds on change, and reloads open slide and notes windows.
-
-You can also open generated files directly through the server, for example:
+The Wails app serves generated decks from an ephemeral loopback address such as:
 
 ```text
-http://127.0.0.1:4747/presentations/my-talk/my-talk.html
-http://127.0.0.1:4747/presentations/my-talk/my-talk.notes.html
+http://127.0.0.1:<port>/presentations/my-talk/my-talk.html
+http://127.0.0.1:<port>/presentations/my-talk/my-talk.notes.html
 ```
+
+While the app is running, it automatically watches every generated presentation with valid source metadata, rebuilds on Markdown changes, and reloads open slide and notes windows.
 
 ## Manual Build
 
-You can also build a deck directly from the command line:
-
-```bash
-npm run build -- /absolute/path/to/your-talk.md
-```
+The active workflow is the Wails manager UI. The legacy Node command-line path has been archived under `legacy/node/`.
 
 ## Authoring Format
 
@@ -158,8 +152,9 @@ template: "marked-text"
 
 Currently supported templates:
 
-- `marked-text`: wraps visible text in dark highlight blocks for text-on-image slides
+- `marked-text`: renders visible text as black background blocks for text-on-image slides
 - `image-right`: uses the first image on the slide as a full-height right-side panel
+- `center`: keeps the first `h1` in the normal top position and centers the remaining slide content
 
 Example:
 
@@ -180,6 +175,7 @@ template: "image-right"
 - headings
 - paragraphs
 - unordered and ordered lists
+- GFM-style pipe tables
 - fenced code blocks
 - inline code, emphasis, and strong text
 - Markdown links
