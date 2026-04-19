@@ -176,6 +176,13 @@ func (a *App) Boot() BootState {
 	}
 }
 
+func (a *App) CloseWindow() {
+	if a.ctx == nil {
+		return
+	}
+	wruntime.WindowHide(a.ctx)
+}
+
 func (a *App) ListPresentations() []Presentation {
 	entries, err := os.ReadDir(a.presentationsDir)
 	if err != nil {

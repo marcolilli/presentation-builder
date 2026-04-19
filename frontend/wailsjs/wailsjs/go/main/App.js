@@ -14,6 +14,10 @@ export function ChooseMarkdownRootDirectory() {
   return window['go']['main']['App']['ChooseMarkdownRootDirectory']();
 }
 
+export function CloseWindow() {
+  return window['go']['main']['App']['CloseWindow']();
+}
+
 export function DeletePresentation(arg1) {
   return window['go']['main']['App']['DeletePresentation'](arg1);
 }

@@ -11,21 +11,14 @@ import {
   SearchMarkdownFiles,
 } from "./wailsjs/go/main/App.js";
 
-const addModalButton = document.getElementById("open-add-modal");
-const addDialog = document.getElementById("add-presentation-dialog");
-const closeAddModalButton = document.getElementById("close-add-modal");
-const cancelAddModalButton = document.getElementById("cancel-add-modal");
-const addForm = document.getElementById("add-presentation-form");
-const searchInput = document.getElementById("source-search");
-const searchResults = document.getElementById("search-results");
-const searchStatus = document.getElementById("search-status");
-const selectedSource = document.getElementById("selected-source");
-const submitAddPresentationButton = document.getElementById("submit-add-presentation");
 const toggleSettingsPageButton = document.getElementById("toggle-settings-page");
 const presentationsPage = document.getElementById("presentations-page");
 const settingsPage = document.getElementById("settings-page");
 const presentationFilterInput = document.getElementById("presentation-filter");
 const presentationList = document.getElementById("presentation-list");
+const searchDiscovery = document.getElementById("search-discovery");
+const searchResults = document.getElementById("search-results");
+const searchStatus = document.getElementById("search-status");
 const toast = document.getElementById("toast");
 const toastMessage = document.getElementById("toast-message");
 const toastSpinner = document.getElementById("toast-spinner");
@@ -33,13 +26,13 @@ const addMarkdownRootButton = document.getElementById("add-markdown-root");
 const markdownRootsList = document.getElementById("markdown-roots-list");
 const markdownRootsEmpty = document.getElementById("markdown-roots-empty");
 
-let selectedSourcePath = "";
 let currentPresentations = [];
 let currentSettings = { markdownRoots: [] };
 let searchRequestId = 0;
 let searchDebounceTimer = null;
 let currentPage = "presentations";
 let toastHideTimer = null;
+let currentFileMatches = [];
 
 function clearToast() {
   toast.hidden = true;
@@ -104,35 +97,24 @@ function escapeHtmlForAttribute(value) {
   return escapeHtmlForHtml(value).replace(/"/g, "&quot;");
 }
 
-function resetAddPresentationState() {
-  searchInput.value = "";
-  selectedSourcePath = "";
-  submitAddPresentationButton.disabled = true;
-  selectedSource.hidden = true;
-  selectedSource.textContent = "";
-  searchStatus.textContent = "Type to search for a source file.";
-  renderSearchResults([]);
+function normalizePath(value) {
+  return String(value || "")
+    .trim()
+    .replaceAll("\\", "/")
+    .toLowerCase();
 }
 
-function openAddPresentationDialog() {
-  resetAddPresentationState();
-  if (typeof addDialog.showModal === "function") {
-    addDialog.showModal();
-  } else {
-    addDialog.setAttribute("open", "open");
-  }
-  searchInput.focus();
-}
-
-function closeAddPresentationDialog() {
-  if (typeof addDialog.close === "function") {
-    addDialog.close();
-  } else {
-    addDialog.removeAttribute("open");
-  }
+function getExistingPresentationSourcePaths() {
+  return new Set(
+    currentPresentations
+      .map((presentation) => normalizePath(presentation.sourcePath))
+      .filter((sourcePath) => sourcePath.length > 0),
+  );
 }
 
 function renderSearchResults(results) {
+  currentFileMatches = results;
+
   if (!results.length) {
     searchResults.hidden = true;
     searchResults.innerHTML = "";
@@ -143,37 +125,44 @@ function renderSearchResults(results) {
   searchResults.innerHTML = results
     .map(
       (result, index) => `
-        <button type="button" class="search-result" data-index="${index}">
-          <span class="search-result-name">${escapeHtmlForHtml(result.name)}</span>
-          <span class="search-result-path">${escapeHtmlForHtml(result.path)}</span>
-        </button>
+        <div class="search-result">
+          <div class="search-result-copy">
+            <span class="search-result-name">${escapeHtmlForHtml(result.name)}</span>
+            <span class="search-result-path">${escapeHtmlForHtml(result.path)}</span>
+          </div>
+          <button type="button" class="search-result-add" data-index="${index}">Add</button>
+        </div>
       `,
     )
     .join("");
 
-  searchResults.querySelectorAll(".search-result").forEach((button) => {
-    button.addEventListener("click", () => {
+  searchResults.querySelectorAll(".search-result-add").forEach((button) => {
+    button.addEventListener("click", async () => {
       const index = Number(button.dataset.index || "-1");
-      if (index < 0 || index >= results.length) {
+      if (index < 0 || index >= currentFileMatches.length) {
         return;
       }
-      chooseSearchResult(results[index].name, results[index].path);
+
+      const match = currentFileMatches[index];
+      try {
+        setMessage(`Adding ${match.name}...`, { loading: true });
+        const state = await BuildPresentation(match.path);
+        await syncFromState(state);
+        await performSearch(presentationFilterInput.value);
+        setMessage(`Added ${match.name}.`);
+      } catch (error) {
+        setMessage(error.message || String(error));
+      }
     });
   });
 }
 
-function chooseSearchResult(name, sourcePath) {
-  selectedSourcePath = sourcePath;
-  submitAddPresentationButton.disabled = false;
-  selectedSource.hidden = false;
-  selectedSource.innerHTML =
-    "<strong>Selected:</strong> " +
-    escapeHtmlForHtml(name) +
-    "<br />" +
-    escapeHtmlForHtml(sourcePath);
-  searchStatus.textContent = "Ready to add presentation.";
-  searchInput.value = name;
-  renderSearchResults([]);
+function renderSearchDiscovery(results, statusText) {
+  const hasResults = results.length > 0;
+  const hasStatus = Boolean(statusText);
+  searchDiscovery.hidden = !hasResults && !hasStatus;
+  searchStatus.textContent = statusText || "";
+  renderSearchResults(results);
 }
 
 async function performSearch(query) {
@@ -182,20 +171,11 @@ async function performSearch(query) {
   const requestId = searchRequestId;
 
   if (!trimmedQuery) {
-    selectedSourcePath = "";
-    submitAddPresentationButton.disabled = true;
-    selectedSource.hidden = true;
-    selectedSource.textContent = "";
-    searchStatus.textContent = "Type to search for a source file.";
-    renderSearchResults([]);
+    renderSearchDiscovery([], "");
     return;
   }
 
-  selectedSourcePath = "";
-  submitAddPresentationButton.disabled = true;
-  selectedSource.hidden = true;
-  selectedSource.textContent = "";
-  searchStatus.textContent = "Searching...";
+  renderSearchDiscovery([], "Searching Markdown files...");
 
   try {
     const results = await SearchMarkdownFiles(trimmedQuery);
@@ -203,17 +183,19 @@ async function performSearch(query) {
       return;
     }
 
-    renderSearchResults(Array.isArray(results) ? results : []);
-    searchStatus.textContent = results.length
-      ? "Choose a source file from the list."
-      : "No matching Markdown files found.";
+    const existingSourcePaths = getExistingPresentationSourcePaths();
+    const filteredResults = (Array.isArray(results) ? results : []).filter((result) => {
+      return !existingSourcePaths.has(normalizePath(result.path));
+    });
+
+    const statusText = filteredResults.length ? "Add a Markdown file as a new presentation." : "No additional Markdown files found.";
+    renderSearchDiscovery(filteredResults, statusText);
   } catch (error) {
     if (requestId !== searchRequestId) {
       return;
     }
 
-    renderSearchResults([]);
-    searchStatus.textContent = error.message || "Could not search files right now.";
+    renderSearchDiscovery([], error.message || "Could not search files right now.");
   }
 }
 
@@ -253,7 +235,9 @@ function renderPresentations(presentations) {
   const filtered = presentations.filter((presentation) => matchesPresentationFilter(query, presentation));
 
   if (!filtered.length) {
-    presentationList.innerHTML = `<p class="empty">No generated presentations found yet.</p>`;
+    presentationList.innerHTML = query.trim()
+      ? `<p class="empty">No matching presentations found.</p>`
+      : `<p class="empty">No generated presentations found yet.</p>`;
     return;
   }
 
@@ -334,6 +318,7 @@ function renderPresentations(presentations) {
           setMessage(`Deleting ${presentation.name}...`, { loading: true });
           const state = await DeletePresentation(presentation.name);
           await syncFromState(state);
+          await performSearch(presentationFilterInput.value);
           setMessage(`Deleted ${presentation.name}.`);
           closePresentationMenus();
         }
@@ -377,6 +362,7 @@ function renderMarkdownRoots() {
       try {
         currentSettings = await SaveSettings({ markdownRoots: nextRoots });
         renderMarkdownRoots();
+        await performSearch(presentationFilterInput.value);
       } catch (error) {
         setMessage(error.message || String(error));
       }
@@ -389,9 +375,6 @@ async function syncFromState(state) {
   renderPresentations(currentPresentations);
 }
 
-addModalButton.addEventListener("click", openAddPresentationDialog);
-closeAddModalButton.addEventListener("click", closeAddPresentationDialog);
-cancelAddModalButton.addEventListener("click", closeAddPresentationDialog);
 toggleSettingsPageButton.addEventListener("click", () => {
   if (currentPage === "settings") {
     showPage("presentations");
@@ -401,39 +384,12 @@ toggleSettingsPageButton.addEventListener("click", () => {
   openSettingsPage();
 });
 
-addDialog.addEventListener("click", (event) => {
-  if (event.target === addDialog) {
-    closeAddPresentationDialog();
-  }
-});
-
-searchInput.addEventListener("input", () => {
-  clearTimeout(searchDebounceTimer);
-  searchDebounceTimer = setTimeout(() => {
-    performSearch(searchInput.value);
-  }, 120);
-});
-
-addForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (!selectedSourcePath) {
-    searchStatus.textContent = "Select a source file before adding.";
-    return;
-  }
-
-  try {
-    setMessage("Adding presentation...", { loading: true });
-    const state = await BuildPresentation(selectedSourcePath);
-    await syncFromState(state);
-    closeAddPresentationDialog();
-    setMessage("Presentation added.");
-  } catch (error) {
-    setMessage(error.message || String(error));
-  }
-});
-
 presentationFilterInput.addEventListener("input", () => {
   renderPresentations(currentPresentations);
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => {
+    performSearch(presentationFilterInput.value);
+  }, 120);
 });
 
 addMarkdownRootButton.addEventListener("click", async () => {
@@ -452,6 +408,7 @@ addMarkdownRootButton.addEventListener("click", async () => {
 
     currentSettings = await SaveSettings({ markdownRoots: nextRoots });
     renderMarkdownRoots();
+    await performSearch(presentationFilterInput.value);
     setMessage("Settings updated.");
   } catch (error) {
     setMessage(error.message || String(error));
@@ -490,6 +447,7 @@ if (window.runtime?.EventsOn) {
 
   window.runtime.EventsOn("presentations:changed", async (state) => {
     await syncFromState(state);
+    await performSearch(presentationFilterInput.value);
   });
 }
 
@@ -499,6 +457,7 @@ try {
   currentSettings = settings || { markdownRoots: [] };
   renderMarkdownRoots();
   await syncFromState(state);
+  await performSearch(presentationFilterInput.value);
   presentationFilterInput.focus();
 } catch (error) {
   setMessage(error.message || String(error));

@@ -18,6 +18,11 @@ var frontendAssets embed.FS
 func main() {
 	app := NewApp()
 	appMenu := menu.NewMenu()
+	appMenu.Append(menu.AppMenu())
+	fileMenu := appMenu.AddSubmenu("File")
+	fileMenu.AddText("Close Window", keys.CmdOrCtrl("w"), func(_ *menu.CallbackData) {
+		app.CloseWindow()
+	})
 	presentationBuilderMenu := appMenu.AddSubmenu("Presentation Builder")
 	presentationBuilderMenu.AddText("Settings", keys.CmdOrCtrl(","), func(_ *menu.CallbackData) {
 		if err := app.OpenSettings(); err != nil {
@@ -25,6 +30,7 @@ func main() {
 		}
 	})
 	appMenu.Append(menu.EditMenu())
+	appMenu.Append(menu.WindowMenu())
 
 	assets, err := fs.Sub(frontendAssets, "frontend")
 	if err != nil {

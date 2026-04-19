@@ -8,6 +8,8 @@ export function BuildPresentation(arg1:string):Promise<main.BootState>;
 
 export function ChooseMarkdownRootDirectory():Promise<string>;
 
+export function CloseWindow():Promise<void>;
+
 export function DeletePresentation(arg1:string):Promise<main.BootState>;
 
 export function ExportPresentationPDF(arg1:string):Promise<string>;

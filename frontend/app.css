@@ -108,6 +108,11 @@ button {
   gap: 1rem;
   margin-bottom: 2rem;
 }
+.page-header-action {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  padding: 0.75rem 0;
+}
 .page-header-copy {
   max-width: 42rem;
 }
@@ -129,6 +134,26 @@ button {
 }
 .presentation-list-search input[type="text"] {
   width: 100%;
+}
+.search-discovery {
+  margin-top: 1.5rem;
+}
+.search-discovery-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 0 0 0.85rem;
+  color: #5b5b5b;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.search-discovery-divider::before,
+.search-discovery-divider::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 0.0625rem;
+  background: rgba(17, 17, 17, 0.12);
 }
 .presentation-card {
   position: relative;
@@ -234,86 +259,23 @@ button {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-dialog {
-  width: min(42rem, calc(100vw - 2rem));
-  border: none;
-  padding: 0;
-  background: transparent;
-  overflow: visible;
-}
-dialog::backdrop {
-  background: rgba(17, 17, 17, 0.4);
-}
-.modal {
-  background: #ffffff;
-  border: 0.0625rem solid rgba(17, 17, 17, 0.16);
-  box-shadow: 0 1rem 3rem rgba(17, 17, 17, 0.12);
-  overflow: visible;
-}
-.modal-header,
-.modal-body,
-.modal-footer {
-  padding: 1rem 1.25rem;
-}
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  border-bottom: 0.0625rem solid rgba(17, 17, 17, 0.08);
-}
-.modal-header h2 {
-  margin: 0;
-}
-.modal-close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  padding: 0;
-  border: 0.0625rem solid rgba(17, 17, 17, 0.16);
-  background: #ffffff;
-  color: #111111;
-}
-
-.modal-close svg {
-  width: 1rem;
-  height: 1rem;
-  display: block;
-}
-.modal-body {
-  position: relative;
-  overflow: visible;
-}
-.modal-body form {
-  margin: 0;
-  display: block;
-}
-.search-field {
-  position: relative;
-}
-.search-field input[type="text"] {
-  width: 100%;
-}
 .search-results {
-  position: absolute;
-  top: calc(100% + 0.35rem);
-  left: 0;
-  right: 0;
-  max-height: 20rem;
-  overflow-y: auto;
   border: 0.0625rem solid rgba(17, 17, 17, 0.16);
   background: #ffffff;
   box-shadow: 0 0.75rem 2rem rgba(17, 17, 17, 0.1);
-  z-index: 3;
 }
 .search-results[hidden] {
   display: none;
 }
+.search-results-inline {
+  position: static;
+}
 .search-result {
   width: 100%;
-  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
   border: none;
   border-bottom: 0.0625rem solid rgba(17, 17, 17, 0.08);
   background: #ffffff;
@@ -326,6 +288,10 @@ dialog::backdrop {
 .search-result:hover {
   background: #f5f7fb;
 }
+.search-result-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
 .search-result-name {
   display: block;
   font-weight: 600;
@@ -337,44 +303,15 @@ dialog::backdrop {
   font-size: 0.92rem;
   overflow-wrap: anywhere;
 }
-.search-status,
-.selected-source {
-  margin-top: 0.75rem;
+.search-result-add {
+  flex: 0 0 auto;
+  min-width: 4rem;
+  padding: 0.55rem 0.8rem;
+}
+.search-status {
+  margin: 0 0 0.75rem;
   color: #5b5b5b;
   font-size: 0.95rem;
-}
-.selected-source strong {
-  color: #111111;
-}
-.modal-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  border-top: 0.0625rem solid rgba(17, 17, 17, 0.08);
-}
-.floating-settings-button {
-  position: fixed;
-  right: 1.5rem;
-  bottom: 1.5rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  padding: 0;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #111111;
-  box-shadow: 0 0.75rem 2rem rgba(17, 17, 17, 0.12);
-  z-index: 20;
-}
-.floating-settings-button:hover {
-  background: #f3f5f8;
-}
-.floating-settings-button-icon {
-  width: 1.35rem;
-  height: 1.35rem;
-  display: block;
 }
 .settings-header {
   margin-bottom: 1.5rem;
@@ -465,9 +402,5 @@ dialog::backdrop {
   .settings-grid {
     grid-template-columns: 1fr;
     flex-direction: column;
-  }
-  .floating-settings-button {
-    right: 1rem;
-    bottom: 1rem;
   }
 }

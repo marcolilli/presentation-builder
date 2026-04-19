@@ -13,7 +13,9 @@
           <h1>Presentations</h1>
           <p>Add a presentation from a Markdown file, or reopen and rebuild an existing one.</p>
         </div>
-        <button type="button" id="open-add-modal">Add</button>
+        <button type="button" class="secondary-button page-header-action" id="toggle-settings-page" aria-label="Open settings">
+          Settings
+        </button>
       </div>
 
       <div id="toast" class="toast" hidden aria-live="polite" aria-atomic="true">
@@ -30,8 +32,8 @@
           <input
             type="text"
             id="presentation-filter"
-            placeholder="Search presentations"
-            aria-label="Search presentations"
+            placeholder="Search presentations or Markdown files"
+            aria-label="Search presentations or Markdown files"
             autocomplete="off"
             autocapitalize="off"
             spellcheck="false"
@@ -39,6 +41,13 @@
         </div>
 
         <div id="presentation-list" class="presentation-list"></div>
+        <section id="search-discovery" class="search-discovery" hidden aria-live="polite">
+          <div class="search-discovery-divider">
+            <span>Markdown Files</span>
+          </div>
+          <div class="search-status" id="search-status"></div>
+          <div class="search-results search-results-inline" id="search-results" hidden></div>
+        </section>
       </section>
 
       <section id="settings-page" class="page-section" hidden>
@@ -66,56 +75,6 @@
         </section>
       </section>
     </main>
-
-    <dialog id="add-presentation-dialog">
-      <div class="modal">
-        <div class="modal-header">
-          <h2>Add Presentation</h2>
-          <button type="button" class="modal-close" id="close-add-modal" aria-label="Close">
-            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-              <path
-                d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5"
-                fill="none"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-width="1.5"
-              />
-            </svg>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form id="add-presentation-form" autocomplete="off">
-            <div class="search-field">
-              <input
-                type="text"
-                id="source-search"
-                placeholder="Search Markdown files"
-                aria-label="Search Markdown files"
-                autocomplete="off"
-                autocapitalize="off"
-                spellcheck="false"
-              />
-              <div class="search-results" id="search-results" hidden></div>
-            </div>
-            <div class="search-status" id="search-status">Type to search for a source file.</div>
-            <div class="selected-source" id="selected-source" hidden></div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="secondary-button" id="cancel-add-modal">Cancel</button>
-          <button type="submit" form="add-presentation-form" id="submit-add-presentation" disabled>Add</button>
-        </div>
-      </div>
-    </dialog>
-
-    <button type="button" class="floating-settings-button" id="toggle-settings-page" aria-label="Open settings">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" class="floating-settings-button-icon settings-icon">
-        <path
-          d="M10.2 2.4h3.6l.55 2.22c.36.11.71.25 1.05.43l1.95-1.2 2.55 2.55-1.2 1.95c.18.34.32.69.43 1.05l2.22.55v3.6l-2.22.55c-.11.36-.25.71-.43 1.05l1.2 1.95-2.55 2.55-1.95-1.2c-.34.18-.69.32-1.05.43l-.55 2.22h-3.6l-.55-2.22a6.87 6.87 0 0 1-1.05-.43l-1.95 1.2-2.55-2.55 1.2-1.95a6.87 6.87 0 0 1-.43-1.05L2.4 13.8v-3.6l2.22-.55c.11-.36.25-.71.43-1.05l-1.2-1.95 2.55-2.55 1.95 1.2c.34-.18.69-.32 1.05-.43L10.2 2.4ZM12 8.4A3.6 3.6 0 1 0 12 15.6 3.6 3.6 0 0 0 12 8.4Z"
-          fill="currentColor"
-        />
-      </svg>
-    </button>
 
     <script type="module" src="./app.js"></script>
   </body>
