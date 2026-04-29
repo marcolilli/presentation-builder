@@ -32,6 +32,11 @@ h3 {
 p {
   line-height: 1.5;
 }
+
+p:has(+ :is(h1, h2, h3, h4, h5, h6)) {
+  margin-bottom: 1.5rem;
+}
+
 a {
   color: #1557ff;
 }
@@ -39,6 +44,7 @@ a,
 button,
 summary,
 input,
+select,
 dialog button,
 dialog [href] {
   transition:
@@ -51,12 +57,14 @@ a:focus,
 button:focus,
 summary:focus,
 input:focus,
+select:focus,
 dialog button:focus,
 dialog [href]:focus,
 a:focus-visible,
 button:focus-visible,
 summary:focus-visible,
 input:focus-visible,
+select:focus-visible,
 dialog button:focus-visible,
 dialog [href]:focus-visible {
   outline: none;
@@ -67,7 +75,8 @@ form {
   flex-wrap: wrap;
   margin: 1rem 0 2rem;
 }
-input[type="text"] {
+input[type="text"],
+select {
   flex: 1 1 28rem;
   min-width: 16rem;
   padding: 0.75rem 0.9rem;
@@ -341,6 +350,10 @@ button {
 .settings-panel h2 {
   margin-top: 0;
   margin-bottom: 1rem;
+}
+.settings-field {
+  display: grid;
+  gap: 0.45rem;
 }
 .settings-list {
   display: grid;

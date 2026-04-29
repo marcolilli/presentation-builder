@@ -22,6 +22,10 @@ export function GetSettings() {
   return window["go"]["main"]["App"]["GetSettings"]();
 }
 
+export function GetAvailableBrowsers() {
+  return window["go"]["main"]["App"]["GetAvailableBrowsers"]();
+}
+
 export function ListPresentations() {
   return window["go"]["main"]["App"]["ListPresentations"]();
 }

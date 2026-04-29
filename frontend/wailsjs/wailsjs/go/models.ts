@@ -3,6 +3,7 @@ export namespace main {
 	export class AppSettings {
 	    markdownRoots: string[];
 	    exportDirectory: string;
+	    defaultBrowser: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new AppSettings(source);
@@ -12,6 +13,7 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.markdownRoots = source["markdownRoots"];
 	        this.exportDirectory = source["exportDirectory"];
+	        this.defaultBrowser = source["defaultBrowser"];
 	    }
 	}
 	export class Presentation {
@@ -67,6 +69,22 @@ export namespace main {
 		    }
 		    return a;
 		}
+	}
+	export class BrowserOption {
+	    id: string;
+	    label: string;
+	    default: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new BrowserOption(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.label = source["label"];
+	        this.default = source["default"];
+	    }
 	}
 	
 	export class SearchResult {

@@ -26,6 +26,10 @@ export function ExportPresentationPDF(arg1) {
   return window['go']['main']['App']['ExportPresentationPDF'](arg1);
 }
 
+export function GetAvailableBrowsers() {
+  return window['go']['main']['App']['GetAvailableBrowsers']();
+}
+
 export function GetSettings() {
   return window['go']['main']['App']['GetSettings']();
 }

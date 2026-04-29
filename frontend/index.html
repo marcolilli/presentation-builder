@@ -54,9 +54,24 @@
         <div class="page-header settings-header">
           <div class="page-header-copy">
             <h1>Settings</h1>
-            <p>Choose the directories that contain Markdown source files for presentation search.</p>
+            <p>Choose the directories that contain Markdown source files for presentation search, and pick which browser opens slides and notes.</p>
           </div>
         </div>
+
+        <section class="settings-panel" aria-labelledby="settings-browser">
+          <div class="settings-panel-header">
+            <div>
+              <h2 id="settings-browser">Browser</h2>
+              <p class="settings-panel-copy">Slides and notes will open in the selected browser.</p>
+            </div>
+          </div>
+
+          <label class="settings-field" for="default-browser-select">
+            <span class="setting-title">Default Browser</span>
+            <span class="setting-description">Use the system default or choose a specific installed browser.</span>
+            <select id="default-browser-select"></select>
+          </label>
+        </section>
 
         <section class="settings-panel" aria-labelledby="settings-markdown-roots">
           <div class="settings-panel-header">

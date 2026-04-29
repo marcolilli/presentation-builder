@@ -14,6 +14,8 @@ export function DeletePresentation(arg1:string):Promise<main.BootState>;
 
 export function ExportPresentationPDF(arg1:string):Promise<string>;
 
+export function GetAvailableBrowsers():Promise<Array<main.BrowserOption>>;
+
 export function GetSettings():Promise<main.AppSettings>;
 
 export function ListPresentations():Promise<Array<main.Presentation>>;

@@ -4,6 +4,7 @@ import {
   ChooseMarkdownRootDirectory,
   DeletePresentation,
   ExportPresentationPDF,
+  GetAvailableBrowsers,
   GetSettings,
   OpenPresentation,
   RebuildPresentation,
@@ -25,9 +26,11 @@ const toastSpinner = document.getElementById("toast-spinner");
 const addMarkdownRootButton = document.getElementById("add-markdown-root");
 const markdownRootsList = document.getElementById("markdown-roots-list");
 const markdownRootsEmpty = document.getElementById("markdown-roots-empty");
+const defaultBrowserSelect = document.getElementById("default-browser-select");
 
 let currentPresentations = [];
-let currentSettings = { markdownRoots: [] };
+let currentSettings = { markdownRoots: [], defaultBrowser: "system" };
+let availableBrowsers = [];
 let searchRequestId = 0;
 let searchDebounceTimer = null;
 let currentPage = "presentations";
@@ -360,14 +363,32 @@ function renderMarkdownRoots() {
 
       const nextRoots = currentSettings.markdownRoots.filter((_, currentIndex) => currentIndex !== index);
       try {
-        currentSettings = await SaveSettings({ markdownRoots: nextRoots });
+        currentSettings = await SaveSettings({
+          markdownRoots: nextRoots,
+          defaultBrowser: currentSettings.defaultBrowser || "system",
+        });
         renderMarkdownRoots();
+        renderBrowserOptions();
         await performSearch(presentationFilterInput.value);
       } catch (error) {
         setMessage(error.message || String(error));
       }
     });
   });
+}
+
+function renderBrowserOptions() {
+  const options = Array.isArray(availableBrowsers) && availableBrowsers.length
+    ? availableBrowsers
+    : [{ id: "system", label: "System Default", default: true }];
+
+  defaultBrowserSelect.innerHTML = options
+    .map((browser) => `<option value="${escapeHtmlForAttribute(browser.id)}">${escapeHtmlForHtml(browser.label)}</option>`)
+    .join("");
+
+  const selectedBrowser = String(currentSettings.defaultBrowser || "system");
+  const hasSelectedBrowser = options.some((browser) => browser.id === selectedBrowser);
+  defaultBrowserSelect.value = hasSelectedBrowser ? selectedBrowser : "system";
 }
 
 async function syncFromState(state) {
@@ -406,11 +427,30 @@ addMarkdownRootButton.addEventListener("click", async () => {
       nextRoots.push(selectedPath);
     }
 
-    currentSettings = await SaveSettings({ markdownRoots: nextRoots });
+    currentSettings = await SaveSettings({
+      markdownRoots: nextRoots,
+      defaultBrowser: currentSettings.defaultBrowser || "system",
+    });
     renderMarkdownRoots();
+    renderBrowserOptions();
     await performSearch(presentationFilterInput.value);
     setMessage("Settings updated.");
   } catch (error) {
+    setMessage(error.message || String(error));
+  }
+});
+
+defaultBrowserSelect.addEventListener("change", async () => {
+  try {
+    setMessage("Updating settings...", { loading: true });
+    currentSettings = await SaveSettings({
+      markdownRoots: currentSettings.markdownRoots || [],
+      defaultBrowser: defaultBrowserSelect.value || "system",
+    });
+    renderBrowserOptions();
+    setMessage("Settings updated.");
+  } catch (error) {
+    renderBrowserOptions();
     setMessage(error.message || String(error));
   }
 });
@@ -453,8 +493,10 @@ if (window.runtime?.EventsOn) {
 
 try {
   updateNavigationState();
-  const [state, settings] = await Promise.all([Boot(), GetSettings()]);
-  currentSettings = settings || { markdownRoots: [] };
+  const [state, settings, browsers] = await Promise.all([Boot(), GetSettings(), GetAvailableBrowsers()]);
+  currentSettings = settings || { markdownRoots: [], defaultBrowser: "system" };
+  availableBrowsers = Array.isArray(browsers) ? browsers : [];
+  renderBrowserOptions();
   renderMarkdownRoots();
   await syncFromState(state);
   await performSearch(presentationFilterInput.value);

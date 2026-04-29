@@ -10,7 +10,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -41,6 +43,13 @@ type BootState struct {
 type AppSettings struct {
 	MarkdownRoots   []string `json:"markdownRoots"`
 	ExportDirectory string   `json:"exportDirectory"`
+	DefaultBrowser  string   `json:"defaultBrowser"`
+}
+
+type BrowserOption struct {
+	ID      string `json:"id"`
+	Label   string `json:"label"`
+	Default bool   `json:"default"`
 }
 
 type presentationMetadata struct {
@@ -88,6 +97,83 @@ type searchFile struct {
 	Path      string
 	LowerName string
 	LowerPath string
+}
+
+const defaultBrowserID = "system"
+
+type browserDefinition struct {
+	ID       string
+	Label    string
+	AppName  string
+	AppPaths []string
+}
+
+var knownBrowsers = []browserDefinition{
+	{ID: defaultBrowserID, Label: "System Default"},
+	{
+		ID:      "safari",
+		Label:   "Safari",
+		AppName: "Safari",
+		AppPaths: []string{
+			"/Applications/Safari.app",
+		},
+	},
+	{
+		ID:      "chrome",
+		Label:   "Google Chrome",
+		AppName: "Google Chrome",
+		AppPaths: []string{
+			"/Applications/Google Chrome.app",
+		},
+	},
+	{
+		ID:      "arc",
+		Label:   "Arc",
+		AppName: "Arc",
+		AppPaths: []string{
+			"/Applications/Arc.app",
+		},
+	},
+	{
+		ID:      "firefox",
+		Label:   "Firefox",
+		AppName: "Firefox",
+		AppPaths: []string{
+			"/Applications/Firefox.app",
+		},
+	},
+	{
+		ID:      "brave",
+		Label:   "Brave",
+		AppName: "Brave Browser",
+		AppPaths: []string{
+			"/Applications/Brave Browser.app",
+		},
+	},
+	{
+		ID:      "edge",
+		Label:   "Microsoft Edge",
+		AppName: "Microsoft Edge",
+		AppPaths: []string{
+			"/Applications/Microsoft Edge.app",
+		},
+	},
+	{
+		ID:      "chromium",
+		Label:   "Chromium",
+		AppName: "Chromium",
+		AppPaths: []string{
+			"/Applications/Chromium.app",
+		},
+	},
+	{
+		ID:      "vivaldi",
+		Label:   "Vivaldi",
+		AppName: "Vivaldi",
+		AppPaths: []string{
+			"/Applications/Vivaldi.app",
+		},
+	},
 }
 
 func NewApp() *App {
@@ -278,6 +364,10 @@ func (a *App) GetSettings() AppSettings {
 	return a.readSettings()
 }
 
+func (a *App) GetAvailableBrowsers() []BrowserOption {
+	return availableBrowserOptions()
+}
+
 func (a *App) SaveSettings(settings AppSettings) (AppSettings, error) {
 	normalizedRoots := make([]string, 0, len(settings.MarkdownRoots))
 	seen := make(map[string]struct{})
@@ -311,6 +401,11 @@ func (a *App) SaveSettings(settings AppSettings) (AppSettings, error) {
 	sort.Strings(normalizedRoots)
 	nextSettings := a.readSettings()
 	nextSettings.MarkdownRoots = normalizedRoots
+	normalizedBrowser, err := normalizeBrowserChoice(settings.DefaultBrowser)
+	if err != nil {
+		return AppSettings{}, err
+	}
+	nextSettings.DefaultBrowser = normalizedBrowser
 	if err := a.writeSettings(nextSettings); err != nil {
 		return AppSettings{}, err
 	}
@@ -355,6 +450,7 @@ func (a *App) BuildPresentation(sourcePath string) (BootState, error) {
 
 	name := strings.TrimSuffix(filepath.Base(sourcePath), filepath.Ext(sourcePath))
 	a.ensureWatcher(name, sourcePath)
+	a.notifyPresentationUpdated(name)
 	a.invalidateSearchCache()
 	return a.Boot(), nil
 }
@@ -376,6 +472,7 @@ func (a *App) RebuildPresentation(name string) (BootState, error) {
 	}
 
 	a.ensureWatcher(name, metadata.SourcePath)
+	a.notifyPresentationUpdated(name)
 	return a.Boot(), nil
 }
 
@@ -404,8 +501,7 @@ func (a *App) OpenPresentation(name string, notes bool) error {
 		return errors.New("application context is not ready")
 	}
 
-	wruntime.BrowserOpenURL(a.ctx, a.presentationURL(name, notes))
-	return nil
+	return a.openURL(a.presentationURL(name, notes))
 }
 
 func (a *App) OpenPresentationFolder(name string) error {
@@ -637,8 +733,7 @@ func (a *App) runWatchedBuild(state *watchState) {
 				return
 			}
 
-			a.notifyPresentationReload(state.name)
-			wruntime.EventsEmit(a.ctx, "presentations:changed", a.Boot())
+			a.notifyPresentationUpdated(state.name)
 		}()
 
 		if err := a.runBuilder(state.sourcePath); err != nil {
@@ -663,18 +758,24 @@ func (a *App) readMetadata(metadataPath string) presentationMetadata {
 func (a *App) readSettings() AppSettings {
 	data, err := os.ReadFile(a.settingsPath)
 	if err != nil {
-		return AppSettings{MarkdownRoots: []string{}, ExportDirectory: a.defaultExportDirectory()}
+		return AppSettings{MarkdownRoots: []string{}, ExportDirectory: a.defaultExportDirectory(), DefaultBrowser: defaultBrowserID}
 	}
 
 	var settings AppSettings
 	if err := json.Unmarshal(data, &settings); err != nil {
-		return AppSettings{MarkdownRoots: []string{}, ExportDirectory: a.defaultExportDirectory()}
+		return AppSettings{MarkdownRoots: []string{}, ExportDirectory: a.defaultExportDirectory(), DefaultBrowser: defaultBrowserID}
 	}
 	if settings.MarkdownRoots == nil {
 		settings.MarkdownRoots = []string{}
 	}
 	if strings.TrimSpace(settings.ExportDirectory) == "" {
 		settings.ExportDirectory = a.defaultExportDirectory()
+	}
+	normalizedBrowser, normalizeErr := normalizeBrowserChoice(settings.DefaultBrowser)
+	if normalizeErr != nil {
+		settings.DefaultBrowser = defaultBrowserID
+	} else {
+		settings.DefaultBrowser = normalizedBrowser
 	}
 	return settings
 }
@@ -701,6 +802,28 @@ func (a *App) rememberExportDirectory(dir string) {
 	nextSettings := a.readSettings()
 	nextSettings.ExportDirectory = dir
 	_ = a.writeSettings(nextSettings)
+}
+
+func (a *App) openURL(targetURL string) error {
+	targetURL = strings.TrimSpace(targetURL)
+	if targetURL == "" {
+		return errors.New("url is required")
+	}
+	if a.ctx == nil {
+		return errors.New("application context is not ready")
+	}
+
+	settings := a.readSettings()
+	selectedBrowser := strings.TrimSpace(settings.DefaultBrowser)
+	if selectedBrowser == "" || selectedBrowser == defaultBrowserID {
+		wruntime.BrowserOpenURL(a.ctx, targetURL)
+		return nil
+	}
+
+	if err := openURLInBrowser(targetURL, selectedBrowser); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (a *App) writeSettings(settings AppSettings) error {
@@ -780,6 +903,13 @@ func (a *App) notifyPresentationReload(name string) {
 		case client <- struct{}{}:
 		default:
 		}
+	}
+}
+
+func (a *App) notifyPresentationUpdated(name string) {
+	a.notifyPresentationReload(name)
+	if a.ctx != nil {
+		wruntime.EventsEmit(a.ctx, "presentations:changed", a.Boot())
 	}
 }
 
@@ -949,6 +1079,93 @@ func findSearchRoot(startDir string) string {
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+func availableBrowserOptions() []BrowserOption {
+	options := []BrowserOption{{
+		ID:      defaultBrowserID,
+		Label:   "System Default",
+		Default: true,
+	}}
+
+	for _, browser := range knownBrowsers {
+		if browser.ID == defaultBrowserID {
+			continue
+		}
+		if browserInstalled(browser) {
+			options = append(options, BrowserOption{
+				ID:    browser.ID,
+				Label: browser.Label,
+			})
+		}
+	}
+
+	return options
+}
+
+func normalizeBrowserChoice(value string) (string, error) {
+	selected := strings.TrimSpace(value)
+	if selected == "" {
+		return defaultBrowserID, nil
+	}
+
+	for _, option := range availableBrowserOptions() {
+		if option.ID == selected {
+			return selected, nil
+		}
+	}
+
+	return "", fmt.Errorf("browser %q is not available", selected)
+}
+
+func browserInstalled(browser browserDefinition) bool {
+	if browser.ID == defaultBrowserID {
+		return true
+	}
+
+	for _, appPath := range browser.AppPaths {
+		if fileExists(appPath) {
+			return true
+		}
+	}
+
+	if runtime.GOOS != "darwin" {
+		return false
+	}
+
+	cmd := exec.Command("open", "-Ra", browser.AppName)
+	return cmd.Run() == nil
+}
+
+func openURLInBrowser(targetURL string, browserID string) error {
+	if browserID == defaultBrowserID {
+		return nil
+	}
+
+	browser, ok := findBrowserByID(browserID)
+	if !ok {
+		return fmt.Errorf("browser %q is not supported", browserID)
+	}
+
+	switch runtime.GOOS {
+	case "darwin":
+		cmd := exec.Command("open", "-a", browser.AppName, targetURL)
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("could not open %s in %s: %w", targetURL, browser.Label, err)
+		}
+		return nil
+	default:
+		return errors.New("custom browser selection is currently only supported on macOS")
+	}
+}
+
+func findBrowserByID(id string) (browserDefinition, bool) {
+	for _, browser := range knownBrowsers {
+		if browser.ID == id {
+			return browser, true
+		}
+	}
+	return browserDefinition{}, false
 }
 
 const minScore = -1 << 30
