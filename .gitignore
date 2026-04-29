@@ -1,1 +1,8 @@
 .DS_Store
+/.idea/.gitignore
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/presentation-builder.iml
+/.idea/vcs.xml
+/.playwright-mcp/console-2026-04-20T20-18-16-049Z.log
+/.playwright-mcp/page-2026-04-20T20-18-16-150Z.yml
