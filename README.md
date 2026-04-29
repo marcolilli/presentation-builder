@@ -32,7 +32,7 @@ Run the native app in dev mode:
 wails dev
 ```
 
-The Wails window is the manager UI. When you open slides or notes, they launch in your default browser from a local Go HTTP server on an ephemeral loopback port.
+The Wails window is the manager UI. When you open slides or notes, they launch in your configured browser from a local Go HTTP server on an ephemeral loopback port.
 
 The native app handles building, rebuilding, local asset serving, source-file watching, browser opening, and deck live reload without any Node runtime.
 
@@ -136,9 +136,22 @@ Accepted `bg` values:
 
 If `bg` points to a video file such as `.mp4`, `.webm`, `.ogg`, or `.mov`, it is rendered as a looping slide background.
 
-### Templates
+Speaker-note styling can be set with `comment-properties` inside the same metadata block:
 
-Templates are set in the same metadata block:
+```md
+%%
+comment-properties: "text-color=blue"
+%%
+```
+
+Currently supported comment property options:
+
+- `text-color`: accepts named colors, hex values, or `rgb(...)` values
+- `blue` is normalized to `rgb(26,23,239)`
+
+### Presets
+
+Presets are set in the same metadata block. You can combine multiple presets by separating them with commas:
 
 ```md
 # Marked slide
@@ -146,15 +159,16 @@ Templates are set in the same metadata block:
 Some text here.
 
 %%
-template: "marked-text"
+presets: "marked-text, smaller-text"
 %%
 ```
 
-Currently supported templates:
+Currently supported presets:
 
 - `marked-text`: renders visible text as black background blocks for text-on-image slides
 - `image-right`: uses the first image on the slide as a full-height right-side panel
 - `center`: keeps the first `h1` in the normal top position and centers the remaining slide content
+- `smaller-text`: reduces the size of body text to fit more content on a slide
 
 Example:
 
@@ -166,7 +180,7 @@ Short explanation here.
 ![[mockup.png]]
 
 %%
-template: "image-right"
+presets: "image-right"
 %%
 ```
 
