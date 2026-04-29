@@ -30,14 +30,15 @@ type builtDeck struct {
 }
 
 type builtSlide struct {
-	Index      int             `json:"index"`
-	Title      string          `json:"title"`
-	Template   string          `json:"template"`
-	HTML       string          `json:"html"`
-	PlainText  string          `json:"plainText"`
-	NotesHTML  string          `json:"notesHtml"`
-	NotesText  string          `json:"notesText"`
-	Background slideBackground `json:"background"`
+	Index          int             `json:"index"`
+	Title          string          `json:"title"`
+	Presets        string          `json:"presets"`
+	HTML           string          `json:"html"`
+	PlainText      string          `json:"plainText"`
+	NotesHTML      string          `json:"notesHtml"`
+	NotesText      string          `json:"notesText"`
+	NotesTextColor string          `json:"notesTextColor,omitempty"`
+	Background     slideBackground `json:"background"`
 }
 
 type slideBackground struct {
@@ -185,7 +186,7 @@ func buildCoverSlide(title string, createdAt string, notesSlide *builtSlide) bui
 	return builtSlide{
 		Index:    0,
 		Title:    title,
-		Template: "cover",
+		Presets:  "cover",
 		HTML: strings.TrimSpace(fmt.Sprintf(`
       <div class="cover-slide">
         <p class="cover-slide-kicker">Presentation</p>
@@ -233,9 +234,15 @@ func parseSlide(slideSource string, index int, inputPath string) (builtSlide, er
 	blocks := notesBlockPattern.FindAllStringSubmatch(slideSource, -1)
 	notesHTML, notesText := extractSpeakerNotes(blocks)
 	metadata := parseSlideMetadata(blocks)
+	commentProperties := parseCommentProperties(metadata["comment-properties"])
 	visibleMarkdown := strings.TrimSpace(notesBlockPattern.ReplaceAllString(slideSource, ""))
 	slideTitle := getSlideTitle(visibleMarkdown, index)
-	templateName := strings.TrimSpace(metadata["template"])
+	rawPresets := strings.TrimSpace(metadata["presets"])
+	if rawPresets == "" {
+		rawPresets = strings.TrimSpace(metadata["template"])
+	}
+	presetNames := parsePresetNames(rawPresets)
+	presets := strings.Join(presetNames, ", ")
 	background := buildBackground(metadata["bg"])
 
 	renderedHTML, err := markdownToHTML(visibleMarkdown)
@@ -243,25 +250,55 @@ func parseSlide(slideSource string, index int, inputPath string) (builtSlide, er
 		return builtSlide{}, err
 	}
 
-	switch templateName {
-	case "marked-text":
-		renderedHTML = applyMarkedTextTemplate(renderedHTML)
-	case "image-right":
-		renderedHTML = applyRightHalfImageTemplate(renderedHTML)
-	case "center":
-		renderedHTML = applyCenterTemplate(renderedHTML)
-	}
+	renderedHTML = applyPresets(renderedHTML, presetNames)
 
 	return builtSlide{
-		Index:      index,
-		Title:      slideTitle,
-		Template:   templateName,
-		HTML:       renderedHTML,
-		PlainText:  markdownToPlainText(visibleMarkdown),
-		NotesHTML:  notesHTML,
-		NotesText:  notesText,
-		Background: background,
+		Index:          index,
+		Title:          slideTitle,
+		Presets:        presets,
+		HTML:           renderedHTML,
+		PlainText:      markdownToPlainText(visibleMarkdown),
+		NotesHTML:      notesHTML,
+		NotesText:      notesText,
+		NotesTextColor: commentProperties.TextColor,
+		Background:     background,
 	}, nil
+}
+
+type commentProperties struct {
+	TextColor string
+}
+
+func parsePresetNames(raw string) []string {
+	segments := strings.Split(raw, ",")
+	presets := make([]string, 0, len(segments))
+	seen := make(map[string]struct{})
+	for _, segment := range segments {
+		name := strings.TrimSpace(segment)
+		if name == "" {
+			continue
+		}
+		if _, ok := seen[name]; ok {
+			continue
+		}
+		seen[name] = struct{}{}
+		presets = append(presets, name)
+	}
+	return presets
+}
+
+func applyPresets(rendered string, presetNames []string) string {
+	for _, presetName := range presetNames {
+		switch presetName {
+		case "marked-text":
+			rendered = applyMarkedTextTemplate(rendered)
+		case "image-right":
+			rendered = applyRightHalfImageTemplate(rendered)
+		case "center":
+			rendered = applyCenterTemplate(rendered)
+		}
+	}
+	return rendered
 }
 
 func extractSpeakerNotes(blocks [][]string) (string, string) {
@@ -311,6 +348,72 @@ func parseSlideMetadata(blocks [][]string) map[string]string {
 	return metadata
 }
 
+func parseCommentProperties(raw string) commentProperties {
+	properties := commentProperties{}
+	if strings.TrimSpace(raw) == "" {
+		return properties
+	}
+
+	for _, segment := range splitCommentPropertySegments(raw) {
+		key, value, ok := parseMetadataLine(strings.TrimSpace(segment))
+		if !ok {
+			parts := strings.SplitN(segment, "=", 2)
+			if len(parts) != 2 {
+				continue
+			}
+			key = strings.ToLower(strings.TrimSpace(parts[0]))
+			value = stripOptionalQuotes(strings.TrimSpace(parts[1]))
+			ok = key != "" && value != ""
+		}
+		if !ok {
+			continue
+		}
+
+		switch key {
+		case "text-color":
+			if normalized, ok := normalizeCommentTextColor(value); ok {
+				properties.TextColor = normalized
+			}
+		}
+	}
+
+	return properties
+}
+
+func splitCommentPropertySegments(raw string) []string {
+	segments := make([]string, 0)
+	var current strings.Builder
+	depth := 0
+
+	flush := func() {
+		segment := strings.TrimSpace(current.String())
+		if segment != "" {
+			segments = append(segments, segment)
+		}
+		current.Reset()
+	}
+
+	for _, r := range raw {
+		switch r {
+		case '(':
+			depth++
+		case ')':
+			if depth > 0 {
+				depth--
+			}
+		case ';', '\n':
+			if depth == 0 {
+				flush()
+				continue
+			}
+		}
+		current.WriteRune(r)
+	}
+	flush()
+
+	return segments
+}
+
 func isMetadataLine(line string) bool {
 	key, _, ok := parseMetadataLine(line)
 	return ok && key != ""
@@ -336,6 +439,20 @@ func stripOptionalQuotes(value string) string {
 		}
 	}
 	return value
+}
+
+func normalizeCommentTextColor(value string) (string, bool) {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return "", false
+	}
+	if strings.EqualFold(trimmed, "blue") {
+		return "rgb(26,23,239)", true
+	}
+	if !isColorValue(trimmed) {
+		return "", false
+	}
+	return trimmed, true
 }
 
 func buildBackground(rawValue string) slideBackground {
@@ -384,6 +501,7 @@ func markdownToHTML(markdown string) (string, error) {
 	rendered = strings.ReplaceAll(rendered, "<table>", `<div class="table-wrapper"><table>`)
 	rendered = strings.ReplaceAll(rendered, "</table>", "</table></div>")
 	rendered = transformCallouts(rendered)
+	rendered = transformArrows(rendered)
 	return rendered, nil
 }
 
@@ -419,6 +537,34 @@ func transformCallouts(input string) string {
 		transformCalloutNode(child)
 	}
 	return renderFragmentChildren(root)
+}
+
+func transformArrows(input string) string {
+	root := parseHTMLFragment(input)
+	if root == nil {
+		return input
+	}
+
+	for child := root.FirstChild; child != nil; child = child.NextSibling {
+		transformArrowNode(child, false)
+	}
+	return renderFragmentChildren(root)
+}
+
+func transformArrowNode(node *xhtml.Node, inCode bool) {
+	if node == nil {
+		return
+	}
+
+	nextInCode := inCode || (node.Type == xhtml.ElementNode && (node.Data == "code" || node.Data == "pre" || node.Data == "script" || node.Data == "style" || node.Data == "textarea"))
+	if node.Type == xhtml.TextNode && !nextInCode {
+		node.Data = strings.ReplaceAll(node.Data, "->", "→")
+		node.Data = strings.ReplaceAll(node.Data, "<-", "←")
+	}
+
+	for child := node.FirstChild; child != nil; child = child.NextSibling {
+		transformArrowNode(child, nextInCode)
+	}
 }
 
 func transformCalloutNode(node *xhtml.Node) {
@@ -979,15 +1125,12 @@ func makeChannelName(inputPath string) string {
 
 func renderSlideMarkup(slide builtSlide, totalSlides int) string {
 	classes := []string{"slide"}
-	switch slide.Template {
-	case "cover":
+	if strings.TrimSpace(slide.Presets) == "cover" {
 		classes = append(classes, "template-cover")
-	case "marked-text":
-		classes = append(classes, "template-marked-text")
-	case "image-right":
-		classes = append(classes, "template-image-right")
-	case "center":
-		classes = append(classes, "template-center")
+	} else {
+		for _, presetName := range parsePresetNames(slide.Presets) {
+			classes = append(classes, "preset-"+presetName)
+		}
 	}
 
 	background := renderSlideBackground(slide.Background)
@@ -1469,6 +1612,18 @@ func renderNotesHTML(deck *builtDeck) string {
         color: var(--muted-color);
       }
 
+      .notes-body {
+        color: var(--notes-text-color, var(--text-color));
+      }
+
+      .notes-body :is(h1, h2, h3, h4, h5, h6, p, li, blockquote, code, strong, em, center, span) {
+        color: inherit;
+      }
+
+      .notes-body a {
+        color: inherit;
+      }
+
       @media (max-width: 64rem) {
         .notes-shell {
           grid-template-columns: 1fr;
@@ -1544,8 +1699,14 @@ func renderNotesHTML(deck *builtDeck) string {
       function goToSlide(index, broadcast) {
         currentIndex = clampIndex(index);
         const slide = SLIDES[currentIndex];
+        const notesBody = document.getElementById('notes-body');
         document.getElementById('notes-meta').textContent = 'Slide ' + (currentIndex + 1) + ' / ' + SLIDES.length;
-        document.getElementById('notes-body').innerHTML = slide.notesHtml || '<p class="notes-empty">No speaker notes for this slide.</p>';
+        if (slide.notesTextColor) {
+          notesBody.style.setProperty('--notes-text-color', slide.notesTextColor);
+        } else {
+          notesBody.style.removeProperty('--notes-text-color');
+        }
+        notesBody.innerHTML = slide.notesHtml || '<p class="notes-empty">No speaker notes for this slide.</p>';
         renderPreview(currentIndex, 'slide-preview-frame');
         renderPreview(currentIndex + 1, 'next-slide-preview-frame');
         writeIndexToQuery(currentIndex);
@@ -1626,7 +1787,7 @@ func sharedSlideStyles() string {
       }
 
       h1, h2, h3, h4, h5, h6 {
-        margin: 0 0 1rem;
+        margin: 0 0 0.1em;
         font-family: var(--headline-font);
         font-weight: 100;
         line-height: 0.95;
@@ -1644,7 +1805,10 @@ func sharedSlideStyles() string {
 
       center { display: block; }
       p, ul, ol, pre, blockquote { margin: 0 0 1rem; }
+      p:has(+ :is(h1, h2, h3, h4, h5, h6)) { margin-bottom: 1.5rem; }
       ul, ol { padding-left: 1.35em; }
+      li { margin-bottom: 0.55rem; }
+      blockquote > p:last-child { margin-bottom: 0; }
 
       a {
         color: #1557ff;
@@ -1669,9 +1833,10 @@ func sharedSlideStyles() string {
 
       blockquote {
         padding: 1rem 1.25rem;
-        border-left: 0.3rem solid #cbd5e1;
-        background: #f8fafc;
-        color: #1f2937;
+        border: none;
+        background: #000000;
+        color: #ffffff;
+        font-style: italic;
       }
 
       .callout {
@@ -1817,8 +1982,8 @@ func sharedSlideStyles() string {
         color: var(--muted-color);
       }
 
-      .slide.template-image-right,
-      .slide.template-image-right .slide-content {
+      .slide.preset-image-right,
+      .slide.preset-image-right .slide-content {
         padding: 0;
         max-width: 100%;
       }
@@ -1861,44 +2026,41 @@ func sharedSlideStyles() string {
         min-height: 0;
       }
 
-      .slide.template-marked-text,
-      .slide.template-marked-text a,
-      .slide.template-marked-text h1,
-      .slide.template-marked-text h2,
-      .slide.template-marked-text h3,
-      .slide.template-marked-text h4,
-      .slide.template-marked-text h5,
-      .slide.template-marked-text h6,
-      .slide.template-marked-text p,
-      .slide.template-marked-text li,
-      .slide.template-marked-text blockquote,
-      .slide.template-marked-text center {
+      .slide.preset-marked-text,
+      .slide.preset-marked-text a,
+      .slide.preset-marked-text h1,
+      .slide.preset-marked-text h2,
+      .slide.preset-marked-text h3,
+      .slide.preset-marked-text h4,
+      .slide.preset-marked-text h5,
+      .slide.preset-marked-text h6,
+      .slide.preset-marked-text p,
+      .slide.preset-marked-text li,
+      .slide.preset-marked-text blockquote,
+      .slide.preset-marked-text center {
         color: #ffffff;
       }
 
-
-      .slide.template-marked-text pre,
-      .slide.template-marked-text code,
-      .slide.template-marked-text table {
+      
+      .slide.preset-marked-text table {
         background: #000000;
       }
 
-      .slide.template-marked-text h1,
-      .slide.template-marked-text h2,
-      .slide.template-marked-text h3,
-      .slide.template-marked-text h4,
-      .slide.template-marked-text h5,
-      .slide.template-marked-text h6,
-      .slide.template-marked-text p,
-      .slide.template-marked-text ul,
-      .slide.template-marked-text ol,
-      .slide.template-marked-text blockquote,
-      .slide.template-marked-text center {
+      .slide.preset-marked-text h1,
+      .slide.preset-marked-text h2,
+      .slide.preset-marked-text h3,
+      .slide.preset-marked-text h4,
+      .slide.preset-marked-text h5,
+      .slide.preset-marked-text h6,
+      .slide.preset-marked-text p,
+      .slide.preset-marked-text ul,
+      .slide.preset-marked-text ol,
+      .slide.preset-marked-text center {
         display: block;
-        margin-bottom: 0.7rem;
+        margin-bottom: 1rem;
       }
 
-      .slide.template-marked-text .bg-wrap {
+      .slide.preset-marked-text .bg-wrap {
         display: inline;
         background: #000000;
         padding: 0.18em 0.28em;
@@ -1907,21 +2069,46 @@ func sharedSlideStyles() string {
         -webkit-box-decoration-break: clone;
       }
 
-      .slide.template-marked-text ul,
-      .slide.template-marked-text ol {
+      .slide.preset-marked-text ul,
+      .slide.preset-marked-text ol {
         display: block;
       }
 
-      .slide.template-marked-text li {
+      .slide.preset-marked-text li {
         display: block;
         padding: 0.12em 0.28em 0.12em 1.2em;
-        margin-bottom: 0.35rem;
       }
 
-      .slide.template-marked-text code,
-      .slide.template-marked-text pre,
-      .slide.template-marked-text pre code {
+      .slide.preset-marked-text code,
+      .slide.preset-marked-text pre,
+      .slide.preset-marked-text pre code {
         color: #ffffff;
+      }
+
+      .slide.preset-marked-text pre {
+        background: #f3f3f3;
+        color: #111111;
+      }
+
+      .slide.preset-marked-text :not(pre) > code {
+        background: #f3f3f3;
+        color: #111111;
+      }
+
+      .slide.preset-smaller-text p,
+      .slide.preset-smaller-text li,
+      .slide.preset-smaller-text blockquote,
+      .slide.preset-smaller-text code,
+      .slide.preset-smaller-text center,
+      .slide.preset-smaller-text th,
+      .slide.preset-smaller-text td {
+        font-size: clamp(1.7rem, 2.25vw, 2.1rem);
+        line-height: 1.38;
+      }
+
+      .slide.preset-smaller-text pre {
+        font-size: clamp(1.45rem, 1.9vw, 1.8rem);
+        line-height: 1.35;
       }
 
       .marked {
@@ -1933,21 +2120,41 @@ func sharedSlideStyles() string {
         -webkit-box-decoration-break: clone;
       }
 
-      ul, ol {
+      ul {
         list-style: none;
         padding-left: 0;
       }
 
-      li {
+      ul > li {
         position: relative;
         padding-left: 1.2em;
       }
 
-      li::before {
+      ul > li::before {
         content: "-";
         position: absolute;
         left: 0;
         color: currentColor;
+      }
+
+      ol {
+        list-style: none;
+        padding-left: 0;
+        counter-reset: ordered-list-item;
+      }
+
+      ol > li {
+        position: relative;
+        padding-left: 1.8em;
+        counter-increment: ordered-list-item;
+      }
+
+      ol > li::before {
+        content: counter(ordered-list-item) ".";
+        position: absolute;
+        left: 0;
+        color: currentColor;
+        font-variant-numeric: tabular-nums;
       }
 
       .table-wrapper {
@@ -1968,6 +2175,11 @@ func sharedSlideStyles() string {
         border: 1px solid #d9d9d9;
         vertical-align: top;
         color: #1f2328;
+      }
+
+      th code,
+      td code {
+        font-size: inherit;
       }
 
       tbody tr:nth-child(odd) td { background: #f3f3f3; }
